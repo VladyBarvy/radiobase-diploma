@@ -1,0 +1,226 @@
+/* renderer/src/styles/ModalAddComponent.css */
+.modal-add-component {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-add-component .modal-body {
+  padding: 20px 24px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #2d3748;
+  display: flex;
+  align-items: center;
+}
+
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  background-color: #4299e1;
+  margin-right: 8px;
+  border-radius: 2px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+.form-group.full-width {
+  width: 100%;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+/* Стили для datetime */
+.datetime-display-container {
+  padding: 12px;
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.datetime-display {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.datetime-hint {
+  font-size: 12px;
+  color: #718096;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Параметры */
+.parameter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.parameter-key {
+  flex: 2;
+}
+
+.parameter-value {
+  flex: 3;
+}
+
+.parameter-remove-btn {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.parameter-remove-btn:hover {
+  background: #c53030;
+}
+
+.add-param-btn {
+  background: none;
+  border: 1px dashed #4299e1;
+  color: #4299e1;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.add-param-btn:hover {
+  background-color: #ebf8ff;
+  border-style: solid;
+}
+
+.divider {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 20px 0;
+}
+
+/* Загрузка изображения */
+.image-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.image-preview {
+  width: 100%;
+  height: 200px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f7fafc;
+}
+
+.image-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.image-placeholder {
+  color: #a0aec0;
+  text-align: center;
+  padding: 20px;
+}
+
+.file-input-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  background-color: #4299e1;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  text-align: center;
+}
+
+.file-input-label:hover {
+  background-color: #3182ce;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .modal-add-component {
+    margin: 20px;
+    max-height: calc(100vh - 40px);
+  }
+  
+  .parameter-row {
+    flex-direction: column;
+  }
+  
+  .parameter-remove-btn {
+    align-self: flex-end;
+  }
+  
+  .datetime-container {
+    flex-direction: column;
+  }
+  
+  .datetime-now-btn {
+    width: 100%;
+  }
+}

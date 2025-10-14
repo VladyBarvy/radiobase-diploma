@@ -83,7 +83,8 @@ body {
   }
   
   .main-content {
-    min-width: calc(100vw - 300px);
+    /* min-width: calc(100vw - 300px); */
+    width: 100%;
   }
 }
 

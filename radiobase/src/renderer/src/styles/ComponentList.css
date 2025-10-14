@@ -347,17 +347,15 @@
 
 
 
-/* ComponentList.css - Обновленная версия */
 
-/* Основной контейнер */
-.component-view {
+/* .component-view {
   padding: 20px;
   height: 100%;
   overflow-y: auto;
   background-color: #f8f9fa;
 }
 
-/* Стили для карточки как в образце */
+
 .card {
   border: none;
   border-radius: 8px;
@@ -399,7 +397,7 @@
   padding: 1.5rem;
 }
 
-/* Стили для таблиц */
+
 .table {
   margin-bottom: 0;
   background: white;
@@ -434,7 +432,7 @@
   color: #555;
 }
 
-/* Стили для таблицы параметров */
+
 .table-striped {
   border: 1px solid #e0e0e0;
   border-radius: 6px;
@@ -467,7 +465,7 @@
   background-color: #f0f7ff;
 }
 
-/* Стили для изображения */
+
 .component-image-container {
   background: #f8f9fa;
   border: 2px dashed #dee2e6;
@@ -493,7 +491,7 @@
   transform: scale(1.05);
 }
 
-/* Стили для кнопок */
+
 .btn {
   border-radius: 6px;
   font-weight: 500;
@@ -527,7 +525,7 @@
   font-size: 0.875rem;
 }
 
-/* Стили для заголовков разделов */
+
 h6 {
   color: #2c3e50;
   font-weight: 600;
@@ -537,7 +535,7 @@ h6 {
   display: inline-block;
 }
 
-/* Стили для карточек с контентом */
+
 .card .card {
   border: 1px solid #e0e0e0;
   border-radius: 6px;
@@ -548,7 +546,7 @@ h6 {
   padding: 1rem;
 }
 
-/* Стили для ссылок */
+
 .datasheet-link {
   color: #3498db;
   text-decoration: none;
@@ -566,7 +564,7 @@ h6 {
   transform: translateY(-1px);
 }
 
-/* Стили для текстовых состояний */
+
 .text-center.text-muted {
   padding: 4rem 1rem;
   background: white;
@@ -589,12 +587,12 @@ h6 {
   margin: 0;
 }
 
-/* Стили для иконок */
+
 .fas {
   margin-right: 0.5rem;
 }
 
-/* Адаптивность */
+
 @media (max-width: 768px) {
   .component-view {
     padding: 15px;
@@ -647,7 +645,7 @@ h6 {
   }
 }
 
-/* Анимации */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -663,7 +661,7 @@ h6 {
   animation: fadeIn 0.5s ease-out;
 }
 
-/* Кастомные стили для разделителей */
+
 hr {
   border: none;
   height: 1px;
@@ -671,12 +669,436 @@ hr {
   margin: 1.5rem 0;
 }
 
-/* Стили для пустых состояний */
+
 .card .card-body.text-center.text-muted {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 6px;
   padding: 2rem;
+}
+
+
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'); */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ComponentList.css - Версия с правильным расположением */
+
+/* Основной контейнер */
+.component-view {
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  width: 800px;
+}
+
+/* Карточка компонента */
+.component-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Заголовок */
+.component-header {
+  background: #f5f5f5;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.component-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Контент карточки */
+.component-content {
+  padding: 20px;
+}
+
+/* Верхний блок с информацией и изображением */
+.top-section {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+/* Левая колонка - информация */
+.info-section {
+  /* flex: 1; */
+  width: 300px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #666;
+  min-width: 120px;
+}
+
+.info-value {
+  color: #333;
+}
+
+/* Правая колонка - изображение */
+.image-section-right {
+  /* flex: 0 0 300px; */
+  /* display: flex; */
+  width: 500px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.image-container {
+  text-align: center;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  width: 100%;
+}
+
+.component-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-placeholder {
+  text-align: center;
+  background: #f8f9fa;
+  padding: 30px 20px;
+  border-radius: 6px;
+  border: 2px dashed #dee2e6;
+  width: 100%;
+  color: #6c757d;
+}
+
+/* Кнопки */
+.btn {
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.btn-outline-primary {
+  background: transparent;
+  border: 1px solid #007bff;
+  color: #007bff;
+}
+
+.btn-outline-primary:hover {
+  background: #007bff;
+  color: white;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+/* Ссылка на datasheet */
+.datasheet-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.datasheet-link:hover {
+  background-color: #f0f7ff;
+  text-decoration: underline;
+}
+
+/* Разделитель */
+.divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 20px 0;
+}
+
+/* Заголовки секций */
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* Секция описания */
+.description-section {
+  margin-bottom: 20px;
+}
+
+.description-content {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  border-left: 4px solid #007bff;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Секция параметров на всю ширину */
+.parameters-section-full {
+  width: 100%;
+}
+
+/* Таблица параметров */
+.parameters-table {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+}
+
+.table-header {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: 600;
+  color: #333;
+}
+
+.parameter-name-header,
+.parameter-value-header {
+  padding: 12px 15px;
+  flex: 1;
+}
+
+.parameter-name-header {
+  border-right: 1px solid #e0e0e0;
+  min-width: 200px;
+}
+
+.table-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.parameter-row-full {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.parameter-row-full:hover {
+  background-color: #f8f9fa;
+}
+
+.parameter-row-full:last-child {
+  border-bottom: none;
+}
+
+.parameter-name-cell,
+.parameter-value-cell {
+  padding: 12px 15px;
+  flex: 1;
+}
+
+.parameter-name-cell {
+  border-right: 1px solid #f0f0f0;
+  font-weight: 600;
+  color: #555;
+  min-width: 200px;
+  background: #fafbfc;
+}
+
+.parameter-value-cell {
+  color: #333;
+}
+
+/* Состояние без параметров */
+.no-parameters {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 2px dashed #dee2e6;
+}
+
+/* Стили для placeholder */
+.text-center.text-muted {
+  padding: 4rem 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+  text-align: center;
+}
+
+.text-center.text-muted .fa-microchip {
+  color: #bdc3c7;
+  margin-bottom: 1rem;
+}
+
+.text-center.text-muted h4 {
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.text-center.text-muted p {
+  color: #95a5a6;
+  margin: 0;
+}
+
+/* Иконки */
+.fas {
+  margin-right: 0.5rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .component-view {
+    padding: 15px;
+  }
+  
+  .top-section {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .image-section-right {
+    flex: none;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .info-section {
+    min-width: auto;
+  }
+  
+  .parameter-name-header,
+  .parameter-name-cell {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 576px) {
+  .component-content {
+    padding: 15px;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .parameter-row-full {
+    flex-direction: column;
+  }
+  
+  .parameter-name-cell {
+    border-right: none;
+    border-bottom: 1px solid #f0f0f0;
+    min-width: auto;
+  }
+  
+  .table-header {
+    display: none;
+  }
 }
 
 /* Иконки Font Awesome */

@@ -11,7 +11,7 @@ import folderIcon from '../assets/picto-directory.jpg';
 import addCategoryIcon from '../assets/picto-dir-plus.jpg';
 import addComponentIcon from '../assets/picto-comp-plus.jpg';
 
-const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
+const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComponentUpdated }) => {
   const [expandedCategories, setExpandedCategories] = useState({});
   const [categories, setCategories] = useState([]);
   const [components, setComponents] = useState({});
@@ -213,20 +213,52 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
 
 
 
+  // const handleSaveComponent = async (componentData) => {
+  //   try {
+  //     const result = await window.api.database.addComponent(componentData);
+  //     if (result.success) {
+  //       console.log('✅ Компонент добавлен:', result.id);
+
+  //       // Безопасная проверка: перезагружаем компоненты только если категория выбрана и совпадает
+  //       if (selectedCategory?.id === componentData.category_id) {
+  //         await loadComponents(componentData.category_id);
+  //       }
+
+  //       // Всегда перезагружаем категории для обновления счетчиков
+  //       await loadCategories();
+
+  //     } else {
+  //       alert(`❌ Ошибка: ${result.error}`);
+  //       throw new Error(result.error);
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Ошибка добавления компонента:', error);
+  //     throw error;
+  //   }
+  // };
+
+
+
   const handleSaveComponent = async (componentData) => {
     try {
       const result = await window.api.database.addComponent(componentData);
       if (result.success) {
         console.log('✅ Компонент добавлен:', result.id);
-
+  
         // Безопасная проверка: перезагружаем компоненты только если категория выбрана и совпадает
         if (selectedCategory?.id === componentData.category_id) {
           await loadComponents(componentData.category_id);
         }
-
+  
         // Всегда перезагружаем категории для обновления счетчиков
         await loadCategories();
-
+  
+        // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ О СОЗДАНИИ НОВОГО КОМПОНЕНТА
+        if (onComponentUpdated && result.id) {
+          const newComponent = await window.api.database.getComponent(result.id);
+          onComponentUpdated(newComponent);
+        }
+  
       } else {
         alert(`❌ Ошибка: ${result.error}`);
         throw new Error(result.error);
@@ -236,6 +268,17 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
       throw error;
     }
   };
+
+
+
+
+
+
+
+
+
+
+
 
   const handleCategoryClick = (category) => {
     if (onCategorySelect) {
@@ -303,6 +346,34 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
   };
 
 
+  // const handleConfirmDeleteComponent = async () => {
+  //   if (deleteConfirmation.component) {
+  //     try {
+  //       const result = await window.api.database.deleteComponent(deleteConfirmation.component.id);
+  //       if (result.success) {
+  //         console.log('✅ Компонент удален:', deleteConfirmation.component.id);
+  
+  //         // Перезагружаем компоненты текущей категории
+  //         if (selectedCategory) {
+  //           await loadComponents(selectedCategory.id);
+  //         }
+  
+  //         // Просто сбрасываем выбор компонента через onComponentSelect
+  //         if (onComponentSelect) {
+  //           onComponentSelect(null);
+  //         }
+  //       } else {
+  //         alert(`❌ Ошибка: ${result.error}`);
+  //       }
+  //     } catch (error) {
+  //       console.error('❌ Ошибка удаления компонента:', error);
+  //       alert('Не удалось удалить компонент');
+  //     }
+  //   }
+  
+  //   setDeleteConfirmation({ isOpen: false, component: null });
+  // };
+
   const handleConfirmDeleteComponent = async () => {
     if (deleteConfirmation.component) {
       try {
@@ -315,9 +386,14 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
             await loadComponents(selectedCategory.id);
           }
   
-          // Просто сбрасываем выбор компонента через onComponentSelect
+          // Сбрасываем выбор компонента через onComponentSelect
           if (onComponentSelect) {
             onComponentSelect(null);
+          }
+  
+          // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ ОБ УДАЛЕНИИ
+          if (onComponentUpdated) {
+            onComponentUpdated(null); // Передаем null, так как компонент удален
           }
         } else {
           alert(`❌ Ошибка: ${result.error}`);
@@ -334,9 +410,73 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
 
 
 
+
+
+
   // Функция сохранения изменений компонента
+  // const handleUpdateComponent = async (componentData) => {
+  //   try {
+  //     const result = await window.api.database.updateComponent(componentData);
+  //     if (result.success) {
+  //       console.log('✅ Компонент обновлен:', componentData.id);
+  
+  //       // Перезагружаем компоненты текущей категории
+  //       if (selectedCategory) {
+  //         await loadComponents(selectedCategory.id);
+  //       }
+  
+  //       // Просто перезагружаем выбранный компонент через onComponentSelect
+  //       if (onComponentSelect) {
+  //         const updatedComponent = await window.api.database.getComponent(componentData.id);
+  //         onComponentSelect(updatedComponent);
+  //       }
+  //     } else {
+  //       alert(`❌ Ошибка: ${result.error}`);
+  //       throw new Error(result.error);
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Ошибка обновления компонента:', error);
+  //     throw error;
+  //   }
+  // };
+
+  // const handleUpdateComponent = async (componentData) => {
+  //   try {
+  //     const result = await window.api.database.updateComponent(componentData);
+  //     if (result.success) {
+  //       console.log('✅ Компонент обновлен:', componentData.id);
+  
+  //       // Перезагружаем компоненты текущей категории
+  //       if (selectedCategory) {
+  //         await loadComponents(selectedCategory.id);
+  //       }
+  
+  //       // Перезагружаем выбранный компонент через onComponentSelect
+  //       if (onComponentSelect) {
+  //         const updatedComponent = await window.api.database.getComponent(componentData.id);
+  //         onComponentSelect(updatedComponent);
+  //       }
+  
+  //       // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ РОДИТЕЛЬСКОГО КОМПОНЕНТА
+  //       if (onComponentUpdated) {
+  //         const updatedComponent = await window.api.database.getComponent(componentData.id);
+  //         onComponentUpdated(updatedComponent);
+  //       }
+  //     } else {
+  //       alert(`❌ Ошибка: ${result.error}`);
+  //       throw new Error(result.error);
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Ошибка обновления компонента:', error);
+  //     throw error;
+  //   }
+  // };
+
+
   const handleUpdateComponent = async (componentData) => {
     try {
+      console.log('🔄 Updating component:', componentData);
+      
       const result = await window.api.database.updateComponent(componentData);
       if (result.success) {
         console.log('✅ Компонент обновлен:', componentData.id);
@@ -346,11 +486,19 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
           await loadComponents(selectedCategory.id);
         }
   
-        // Просто перезагружаем выбранный компонент через onComponentSelect
+        // Обновляем выбранный компонент
         if (onComponentSelect) {
           const updatedComponent = await window.api.database.getComponent(componentData.id);
           onComponentSelect(updatedComponent);
         }
+  
+        // Уведомляем родительский компонент об обновлении
+        if (onComponentUpdated) {
+          const updatedComponent = await window.api.database.getComponent(componentData.id);
+          onComponentUpdated(updatedComponent);
+        }
+        
+        return { success: true };
       } else {
         alert(`❌ Ошибка: ${result.error}`);
         throw new Error(result.error);
@@ -360,6 +508,8 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect }) => {
       throw error;
     }
   };
+
+  
 
 
 

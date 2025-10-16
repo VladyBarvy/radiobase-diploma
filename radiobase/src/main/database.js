@@ -668,6 +668,32 @@ class ComponentsDatabase {
     return this.all("SELECT c.*, cat.name as category_name FROM components c LEFT JOIN categories cat ON c.category_id = cat.id ORDER BY c.name");
   }
 
+  // getComponent(id) {
+  //   const component = this.get(`
+  //     SELECT c.*, cat.name as category_name 
+  //     FROM components c 
+  //     LEFT JOIN categories cat ON c.category_id = cat.id 
+  //     WHERE c.id = ?
+  //   `, [id]);
+    
+  //   if (component) {
+  //     // Безопасный парсинг параметров
+  //     if (component.parameters && typeof component.parameters === 'string') {
+  //       try {
+  //         component.parameters = JSON.parse(component.parameters);
+  //       } catch {
+  //         component.parameters = {};
+  //       }
+  //     } else {
+  //       component.parameters = component.parameters || {};
+  //     }
+  //   }
+    
+  //   return component;
+  // }
+
+
+
   getComponent(id) {
     const component = this.get(`
       SELECT c.*, cat.name as category_name 
@@ -676,12 +702,18 @@ class ComponentsDatabase {
       WHERE c.id = ?
     `, [id]);
     
+    console.log('🔍 Raw component data:', component);
+    console.log('🔍 Parameters type:', typeof component?.parameters);
+    console.log('🔍 Parameters value:', component?.parameters);
+    
     if (component) {
       // Безопасный парсинг параметров
       if (component.parameters && typeof component.parameters === 'string') {
         try {
           component.parameters = JSON.parse(component.parameters);
-        } catch {
+          console.log('✅ Successfully parsed parameters:', component.parameters);
+        } catch (error) {
+          console.error('❌ JSON parse error:', error);
           component.parameters = {};
         }
       } else {
@@ -721,11 +753,45 @@ class ComponentsDatabase {
     return { success: false, error: "Ошибка добавления компонента" };
   }
 
-  updateComponent(componentData) {
-    if (!componentData.id || !componentData.category_id || !componentData.name?.trim()) {
-      return { success: false, error: "ID, категория и название компонента обязательны" };
-    }
+  // updateComponent(componentData) {
+  //   if (!componentData.id || !componentData.category_id || !componentData.name?.trim()) {
+  //     return { success: false, error: "ID, категория и название компонента обязательны" };
+  //   }
 
+  //   const result = this.run(`
+  //     UPDATE components 
+  //     SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
+  //         quantity = ?, updated_at = ?, parameters = ?, image_data = ?, description = ?
+  //     WHERE id = ?
+  //   `, [
+  //     componentData.category_id,
+  //     componentData.name.trim(),
+  //     componentData.storage_cell?.trim() || null,
+  //     componentData.datasheet_url?.trim() || null,
+  //     Math.max(0, parseInt(componentData.quantity) || 0),
+  //     componentData.updated_at || new Date().toISOString(),
+  //     this.serializeParameters(componentData.parameters),
+  //     componentData.image_data || null,
+  //     componentData.description?.trim() || null,
+  //     componentData.id
+  //   ]);
+
+  //   if (result.success && result.changes > 0) {
+  //     return { success: true };
+  //   }
+    
+  //   return { 
+  //     success: false, 
+  //     error: result.changes === 0 ? "Компонент не найден" : "Ошибка обновления компонента" 
+  //   };
+  // }
+
+
+  updateComponent(componentData) {
+    if (!componentData.id) {
+      return { success: false, error: "ID компонента обязателен для обновления" };
+    }
+  
     const result = this.run(`
       UPDATE components 
       SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
@@ -733,26 +799,24 @@ class ComponentsDatabase {
       WHERE id = ?
     `, [
       componentData.category_id,
-      componentData.name.trim(),
-      componentData.storage_cell?.trim() || null,
-      componentData.datasheet_url?.trim() || null,
-      Math.max(0, parseInt(componentData.quantity) || 0),
-      componentData.updated_at || new Date().toISOString(),
-      this.serializeParameters(componentData.parameters),
-      componentData.image_data || null,
-      componentData.description?.trim() || null,
+      componentData.name,
+      componentData.storage_cell,
+      componentData.datasheet_url,
+      componentData.quantity,
+      new Date().toISOString(),
+      JSON.stringify(componentData.parameters),
+      componentData.image_data,
+      componentData.description,
       componentData.id
     ]);
-
-    if (result.success && result.changes > 0) {
-      return { success: true };
-    }
-    
+  
     return { 
-      success: false, 
-      error: result.changes === 0 ? "Компонент не найден" : "Ошибка обновления компонента" 
+      success: result.success, 
+      changes: result.changes,
+      error: result.success && result.changes === 0 ? "Компонент не найден" : null
     };
   }
+  
 
   deleteComponent(id) {
     const result = this.run("DELETE FROM components WHERE id = ?", [id]);

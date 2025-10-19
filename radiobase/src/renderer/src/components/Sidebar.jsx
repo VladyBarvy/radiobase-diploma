@@ -4,6 +4,7 @@ import ContextMenu from './ContextMenu.jsx';
 import ConfirmationDialog from './ConfirmationDialog.jsx';
 import ModalAddComponent from './ModalAddComponent.jsx';
 import ContextMenuComponent from './ContextMenuComponent.jsx';
+import SearchResults from './SearchResults.jsx';
 import '../styles/Sidebar.css';
 
 // Импортируем иконки
@@ -12,13 +13,15 @@ import addCategoryIcon from '../assets/picto-dir-plus.jpg';
 import addComponentIcon from '../assets/picto-comp-plus.jpg';
 import pictoComponentIcon from '../assets/picto-elem.jpg';
 
-const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComponentUpdated }) => {
+const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComponentUpdated, onSearch }) => {
   const [expandedCategories, setExpandedCategories] = useState({});
   const [categories, setCategories] = useState([]);
   const [components, setComponents] = useState({});
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isComponentModalOpen, setIsComponentModalOpen] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Состояния для контекстного меню
   const [contextMenu, setContextMenu] = useState({
@@ -88,7 +91,6 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
 
   const handleComponentSelect = (component) => {
     console.log('Выбран компонент:', component);
-    console.log('Категория компонента:', component.category_name); // Добавьте эту строку для отладки
     if (onComponentSelect) {
       onComponentSelect(component);
     }
@@ -242,13 +244,12 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
     }
   };
 
+
   const handleCategoryClick = (category) => {
     if (onCategorySelect) {
       onCategorySelect(category);
     }
   };
-
-
 
   const [componentContextMenu, setComponentContextMenu] = useState({
     isOpen: false,
@@ -379,8 +380,30 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
   };
 
 
+  // Функция для выполнения поиска
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
 
+    if (onSearch) {
+      await onSearch(searchQuery);
+    }
+  };
 
+  // Обработчик нажатия Enter
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Функция для сброса поиска (если нужна кнопка очистки)
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    // Если нужен сброс результатов в App, можно вызвать onSearch('')
+    if (onSearch) {
+      onSearch('');
+    }
+  };
 
 
   return (
@@ -410,6 +433,41 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
           </button>
         </div>
       </div>
+
+
+
+      {/* Форма поиска */}
+      <div className="sidebar__search">
+        <div className="search-input-container">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Поиск компонентов..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <div className="search-buttons-container">
+            <button
+              className="search-btn"
+              onClick={handleSearch}
+              disabled={!searchQuery.trim()}
+            >
+              <span>Поиск</span>
+            </button>
+            <button
+              className="clear-search-btn"
+              onClick={handleClearSearch}
+              disabled={!searchQuery}
+            >
+              <span>Сброс</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+
+
 
       {/* Модальное окно добавления категории */}
       <ModalAddCategory
@@ -534,7 +592,7 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
                               onClick={() => handleComponentSelect(component)}
                               title={`Количество: ${component.quantity || 0}`}
                             >
-                              {/* Добавляем пиктограмму перед названием компонента */}
+
                               <img
                                 src={pictoComponentIcon}
                                 alt="Компонент"
@@ -580,6 +638,9 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
           </div>
         )}
       </nav>
+
+
+
     </aside>
   );
 };

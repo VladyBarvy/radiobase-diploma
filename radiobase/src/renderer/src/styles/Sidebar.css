@@ -336,3 +336,46 @@
   background-color: #f7fafc;
   color: #4a5568;
 }
+
+/* Стили для пиктограмм компонентов */
+.sidebar__component-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px 8px 0;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #718096;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar__component-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.sidebar__component-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__component-button:hover {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.sidebar__component-button:hover .sidebar__component-icon {
+  opacity: 0.9;
+}

@@ -1,4 +1,3 @@
-// renderer/src/components/ContextMenuComponent.jsx
 import React from 'react';
 import '../styles/ContextMenuComponent.css';
 

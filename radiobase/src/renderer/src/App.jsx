@@ -1,65 +1,3 @@
-// import React, { useState } from 'react';
-// import Sidebar from './components/Sidebar';
-// import ComponentList from './components/ComponentList';
-// import './styles/App.css';
-// import chipIcon from './assets/picto-chip.png';
-
-// function App() {
-//   const [selectedCategory, setSelectedCategory] = useState(null);
-//   const [selectedComponent, setSelectedComponent] = useState(null);
-
-//   const handleComponentSelect = (component) => {
-//     setSelectedComponent(component);
-//   };
-
-//   const handleEditComponent = (component) => {
-//     console.log('Редактирование компонента:', component);
-//     // Здесь вызовите функцию открытия модального окна редактирования
-//     // Например: setEditingComponent(component); setIsEditModalOpen(true);
-//   };
-
-//   return (
-//     <div className="app">
-//       <Sidebar
-//         selectedCategory={selectedCategory}
-//         onCategorySelect={setSelectedCategory}
-//         onComponentSelect={handleComponentSelect}
-//       />
-
-//       <main className="main-content">
-//         <div className="content-wrapper">
-//           {selectedComponent ? (
-//             <ComponentList
-//               category={selectedCategory}
-//               component={selectedComponent}
-//               onEdit={handleEditComponent}
-//             />
-//           ) : selectedCategory ? (
-//             <div className="welcome-message">
-//               <img src={chipIcon} alt="Микросхема" className="welcome-icon" />
-//               {/* Исправлено: selectedCategory.name вместо selectedCategory */}
-//               <h1>Выберите компонент из категории "{selectedCategory.name}"</h1>
-//               <p>или создайте новый компонент</p>
-//               <div className="divider"></div>
-//             </div>
-//           ) : (
-//             <div className="welcome-message">
-//               <img src={chipIcon} alt="Микросхема" className="welcome-icon" />
-//               <h1>Выберите компонент для просмотра</h1>
-//               <p>или создайте новый компонент</p>
-//               <div className="divider"></div>
-//             </div>
-//           )}
-//         </div>
-//       </main>
-//     </div>
-//   )
-// }
-
-// export default App
-
-
-
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ComponentList from './components/ComponentList';
@@ -82,33 +20,6 @@ function App() {
     setEditingComponent(component);
     setIsEditModalOpen(true);
   };
-
-  // const handleSaveComponent = async (componentData) => {
-  //   try {
-  //     // Здесь будет логика сохранения изменений компонента
-  //     console.log('Сохранение компонента:', componentData);
-
-  //     // TODO: Вызвать API для обновления компонента в базе данных
-  //     // await updateComponent(componentData);
-
-  //     // Обновляем выбранный компонент, если редактировали текущий
-  //     if (selectedComponent && selectedComponent.id === componentData.id) {
-  //       setSelectedComponent(componentData);
-  //     }
-
-  //     // Закрываем модальное окно
-  //     setIsEditModalOpen(false);
-  //     setEditingComponent(null);
-
-  //     // TODO: Показать уведомление об успешном сохранении
-  //     alert('Компонент успешно обновлен!');
-
-  //   } catch (error) {
-  //     console.error('Ошибка при сохранении компонента:', error);
-  //     alert('Не удалось сохранить изменения');
-  //   }
-  // };
-
 
   const handleSaveComponent = async (componentData) => {
     try {

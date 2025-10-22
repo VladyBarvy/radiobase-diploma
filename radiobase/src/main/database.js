@@ -22,6 +22,9 @@ class ComponentsDatabase {
     this.init();
   }
 
+
+
+
   init() {
     try {
       this.createTables();

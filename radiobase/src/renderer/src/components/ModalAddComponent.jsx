@@ -433,7 +433,10 @@ const ModalAddComponent = ({
               </div>
             </div>
 
+
+
             {/* Количество */}
+            {/*
             <div className="form-section">
               <h3 className="section-title">Количество</h3>
               <div className="form-row">
@@ -441,7 +444,7 @@ const ModalAddComponent = ({
                   <input
                     type="number"
                     className="form-control"
-                    placeholder="0"
+                    // placeholder="0"
                     value={formData.quantity}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -461,6 +464,46 @@ const ModalAddComponent = ({
                     }}
                     onFocus={(e) => {
                       e.target.select();
+                    }}
+                    min="0"
+                    step="1"
+                  />
+                </div>
+              </div>
+            </div> */}
+            {/* Количество */}
+            <div className="form-section">
+              <h3 className="section-title">Количество</h3>
+              <div className="form-row">
+                <div className="form-group full-width">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={formData.quantity === 0 ? "" : formData.quantity} // Показываем пустую строку вместо 0
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      
+                      if (value === '') {
+                        handleInputChange('quantity', 0);
+                      } else {
+                        const numericValue = parseInt(value, 10);
+                        if (!isNaN(numericValue) && numericValue >= 0) {
+                          handleInputChange('quantity', numericValue);
+                        }
+                      }
+                    }}
+                    onFocus={(e) => {
+                      // Если значение 0, очищаем поле при фокусе
+                      if (formData.quantity === 0) {
+                        e.target.value = "";
+                      }
+                      e.target.select();
+                    }}
+                    onBlur={(e) => {
+                      // Если поле пустое при потере фокуса, устанавливаем 0
+                      if (e.target.value === '') {
+                        handleInputChange('quantity', 0);
+                      }
                     }}
                     min="0"
                     step="1"

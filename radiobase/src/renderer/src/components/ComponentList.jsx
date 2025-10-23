@@ -301,25 +301,29 @@ const ComponentList = ({ category, component, onEdit }) => {
             </>
           )}
 
-          {/* Нижний блок: параметры на всю ширину */}
+          {/* Раздел "Параметры" */}
           <div className="parameters-section-full">
             <h2 className="section-title">Параметры</h2>
             {Object.keys(parameters).length > 0 ? (
-              <div className="parameters-table">
-                <div className="table-header">
-                  <div className="parameter-name-header">Параметр</div>
-                  <div className="parameter-value-header">Значение</div>
-                </div>
-                <div className="table-body">
-                  {Object.entries(parameters).map(([key, value]) => (
-                    <div key={key} className="parameter-row-full">
-                      <div className="parameter-name-cell">{key}</div>
-                      <div className="parameter-value-cell">
-                        {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="new-parameters-container">
+                <table className="new-parameters-table">
+                  <thead>
+                    <tr>
+                      <th className="new-param-name-header">Параметр</th>
+                      <th className="new-param-value-header">Значение</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(parameters).map(([key, value]) => (
+                      <tr key={key}>
+                        <td className="new-param-name-cell">{key}</td>
+                        <td className="new-param-value-cell">
+                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="no-parameters">
@@ -328,6 +332,10 @@ const ComponentList = ({ category, component, onEdit }) => {
               </div>
             )}
           </div>
+
+
+
+
         </div>
       </div>
 

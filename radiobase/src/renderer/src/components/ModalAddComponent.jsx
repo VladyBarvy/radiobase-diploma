@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import '../styles/ModalAddComponent.css';
+import {
+  FaEdit,
+  FaSave,
+  FaUpload,        // Стрелка вверх (загрузка)
+  FaDownload,      // Стрелка вниз (скачивание)
+  FaFileUpload,    // Файл со стрелкой вверх
+  FaCloudUploadAlt, // Облако со стрелкой вверх
+  FaImage,         // Изображение
+  FaPhotoVideo,    // Фото/видео
+  FaCamera         // Камера
+} from 'react-icons/fa';
 
 const ModalAddComponent = ({
   isOpen,
@@ -630,7 +641,9 @@ const ModalAddComponent = ({
                     onChange={handleImageChange}
                     className="file-input"
                   />
+                  
                   <label htmlFor="component-image" className="file-input-label">
+                  <FaFileUpload size={14} />                 
                     Загрузить изображение
                   </label>
                 </div>
@@ -648,8 +661,10 @@ const ModalAddComponent = ({
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              // className="btn btn-primary"
+              className="button-save-change"
             >
+              <FaSave size={14} />
               {editMode ? 'Сохранить изменения' : 'Сохранить'}
             </button>
           </div>

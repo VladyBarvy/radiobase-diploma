@@ -1,5 +1,24 @@
 import React from 'react';
+import { FaEdit } from 'react-icons/fa';
 import '../styles/SearchResults.css';
+
+const PencilIcon = ({ size = 16, color = 'currentColor', className = '' }) => {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+    </svg>
+  );
+};
 
 const SearchResults = ({ searchResults, searchQuery, onComponentSelect, onEdit }) => {
   if (!searchResults || searchResults.length === 0) {
@@ -64,7 +83,9 @@ const SearchResults = ({ searchResults, searchQuery, onComponentSelect, onEdit }
                   onClick={(e) => handleEditClick(component, e)}
                   title="Редактировать компонент"
                 >
-                  <i className="fas fa-edit"></i>
+                  {/* <PencilIcon size={14} color="white" /> */}
+                  <FaEdit size={14} />
+                  Редактировать
                 </button>
               </div>
             </div>

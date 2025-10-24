@@ -306,7 +306,7 @@
   display: none;
 }
 
-.file-input-label {
+/* .file-input-label {
   background-color: #4299e1;
   color: white;
   padding: 10px 20px;
@@ -320,7 +320,59 @@
 
 .file-input-label:hover {
   background-color: #3182ce;
+} */
+
+
+
+
+
+
+
+
+
+
+.file-input-label {
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; /* РАЗКОММЕНТИРОВАТЬ! */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Добавить отступ между иконкой и текстом */
+  width: 200px;
+  height: 30px;
+  font-size: 14px;
+  font-weight: 500;
 }
+
+.file-input-label svg {
+  flex-shrink: 0;
+}
+
+.file-input-label:hover {
+  background: #3182ce;
+  transform: scale(1.05);
+}
+
+/* Стили для иконки внутри кнопки */
+.file-input-label .fas {
+  font-size: 14px;
+  color: white;
+}
+
+
+
+
+
+
+
+
+
+
 
 /* Адаптивность */
 @media (max-width: 768px) {
@@ -441,6 +493,40 @@
   font-weight: bold;
   margin-left: 5px;
   animation: pulse 2s infinite;
+}
+
+
+
+.button-save-change {
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; /* РАЗКОММЕНТИРОВАТЬ! */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Добавить отступ между иконкой и текстом */
+  width: 200px;
+  height: 30px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.button-save-change svg {
+  flex-shrink: 0;
+}
+
+.button-save-change:hover {
+  background: #3182ce;
+  transform: scale(1.05);
+}
+
+.button-save-change .fas {
+  font-size: 14px;
+  color: white;
 }
 
 @keyframes pulse {

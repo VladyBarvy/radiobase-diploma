@@ -637,6 +637,39 @@
 }
 
 .btn-edit-component {
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; /* РАЗКОММЕНТИРОВАТЬ! */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Добавить отступ между иконкой и текстом */
+  width: 150px;
+  height: 30px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-edit-component svg {
+  flex-shrink: 0;
+}
+
+.btn-edit-component:hover {
+  background: #3182ce;
+  transform: scale(1.05);
+}
+
+
+.btn-edit-component .fas {
+  font-size: 14px;
+  color: white;
+}
+
+/*.btn-edit-component {
   background: #007bff;
   color: white;
   border: none;
@@ -665,7 +698,7 @@
 
 .btn-edit-component .fas {
   font-size: 12px;
-}
+} */
 
 .component-content {
   padding: 20px;
@@ -720,6 +753,12 @@
   border-radius: 6px;
   border: 1px solid #e0e0e0;
   width: 100%;
+}
+
+.image-container > div {
+  display: flex;
+  justify-content: center; /* Центрируем кнопку по горизонтали */
+  margin-top: 15px;
 }
 
 .component-image {
@@ -888,10 +927,10 @@
     font-size: 20px;
   }
   
-  .btn-edit-component {
+  /* .btn-edit-component {
     align-self: stretch;
     justify-content: center;
-  }
+  } */
   
   .top-section {
     flex-direction: column;
@@ -944,10 +983,10 @@
     font-size: 18px;
   }
   
-  .btn-edit-component {
+  /* .btn-edit-component {
     padding: 10px 16px;
     font-size: 13px;
-  }
+  } */
   
   .component-content {
     padding: 15px;
@@ -1083,4 +1122,37 @@
   -moz-user-select: text !important;
   -ms-user-select: text !important;
   cursor: text !important;
+}
+
+.button-update-image {
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; /* РАЗКОММЕНТИРОВАТЬ! */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Добавить отступ между иконкой и текстом */
+  width: 200px;
+  height: 30px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.button-update-image svg {
+  flex-shrink: 0;
+}
+
+.button-update-image:hover {
+  background: #3182ce;
+  transform: scale(1.05);
+}
+
+/* Стили для иконки внутри кнопки */
+.button-update-image .fas {
+  font-size: 14px;
+  color: white;
 }

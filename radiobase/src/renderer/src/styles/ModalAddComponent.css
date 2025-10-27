@@ -306,27 +306,6 @@
   display: none;
 }
 
-/* .file-input-label {
-  background-color: #4299e1;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  text-align: center;
-}
-
-.file-input-label:hover {
-  background-color: #3182ce;
-} */
-
-
-
-
-
-
 
 
 
@@ -339,10 +318,10 @@
   padding: 8px 12px;
   cursor: pointer;
   transition: all 0.2s;
-  display: flex; /* РАЗКОММЕНТИРОВАТЬ! */
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px; /* Добавить отступ между иконкой и текстом */
+  gap: 8px;
   width: 200px;
   height: 30px;
   font-size: 14px;

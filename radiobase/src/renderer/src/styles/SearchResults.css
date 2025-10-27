@@ -139,10 +139,10 @@
   padding: 8px 12px;
   cursor: pointer;
   transition: all 0.2s;
-  display: flex; /* РАЗКОММЕНТИРОВАТЬ! */
+  display: flex; 
   align-items: center;
   justify-content: center;
-  gap: 8px; /* Добавить отступ между иконкой и текстом */
+  gap: 8px; 
   width: 150px;
   height: 30px;
   font-size: 14px;

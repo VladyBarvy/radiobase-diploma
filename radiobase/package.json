@@ -11,12 +11,16 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "postinstall": "electron-builder install-app-deps && npm run rebuild:db",
+    "postinstall": "electron-builder install-app-deps",
     "rebuild:db": "electron-rebuild -f -w better-sqlite3",
+    "rebuild:all": "npm run postinstall && npm run rebuild:db",
     "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win",
-    "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:win": "npm run rebuild:all && npm run build && electron-builder --win",
+    "build:win:portable": "npm run rebuild:all && npm run build && electron-builder --win --config.artifactName=RadioBase-Portable.exe --config.win.target=portable",
+    "build:win:installer": "npm run rebuild:all && npm run build && electron-builder --win --config.win.target=nsis",
+    "build:mac": "npm run rebuild:all && npm run build && electron-builder --mac",
+    "build:linux": "npm run rebuild:all && npm run build && electron-builder --linux",
+    "dist": "npm run rebuild:all && npm run build && electron-builder --win --publish=never"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -78,7 +82,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "perMachine": false
     },
     "mac": {
       "target": "dmg",

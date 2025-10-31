@@ -155,6 +155,12 @@ function App() {
         </div>
       </main>
 
+
+
+    
+
+
+      
       {/* Модальное окно редактирования компонента */}
       <ModalAddComponent
         isOpen={isEditModalOpen}

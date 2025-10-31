@@ -32,3 +32,7 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
+
+
+$ rm -rf out release
+$ npm run build:win:portable

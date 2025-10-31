@@ -6,3 +6,8 @@ out
 *.log*
 /data/
 /Data/
+**/release/
+**/test-results/
+**/tests/
+
+

@@ -101,20 +101,25 @@ npm run dev
 
 ### Стартовое окно приложения
 <div align="center">
-<img src="radiobase/screenshots/1.png" width="50%" alt="Стартовое окно приложения">
+<img src="radiobase/screenshots/1.png" width="80%" alt="Стартовое окно приложения">
 </div>
 
 ### Модальное окно добавления/редактирование карточки компонента
 <div align="center">
-<img src="radiobase/screenshots/2.png" width="50%" alt="Модальное окно дабавления/редактирование карточки компонента">
+<img src="radiobase/screenshots/2.png" width="80%" alt="Модальное окно дабавления/редактирование карточки компонента">
 </div>
 
 ### Модальное окно добавления новой категории компонентов
 <div align="center">
-<img src="radiobase/screenshots/3.png" width="50%" alt="Модальное окно добавления новой категории компонентов">
+<img src="radiobase/screenshots/3.png" width="8%" alt="Модальное окно добавления новой категории компонентов">
 </div>
 
 ### Карточка электронного компонента
 <div align="center">
-<img src="radiobase/screenshots/4.png" width="50%" alt="Карточка электронного компонента">
+<img src="radiobase/screenshots/4.png" width="80%" alt="Карточка электронного компонента">
+</div>
+
+### Результаты поиска
+<div align="center">
+<img src="radiobase/screenshots/5.png" width="80%" alt="Результаты поиска">
 </div>

@@ -18,17 +18,25 @@
     "build:win:installer": "npm run build && electron-builder --win --config.win.target=nsis",
     "build:mac": "npm run build && electron-builder --mac",
     "build:linux": "npm run build && electron-builder --linux",
-    "dist": "npm run build && electron-builder --win --publish=never"
+    "dist": "npm run build && electron-builder --win --publish=never",
+    "test": "playwright test",
+    "test:ui": "playwright test tests/specs/universal-ui-test.spec.js --ui",
+    "test:ui-all": "playwright test tests/specs/ --ui",
+    "test:ui-fixed": "playwright test tests/specs/ui-mode-fixed.spec.js --ui",
+    "test:headed": "playwright test tests/specs/universal-ui-test.spec.js --headed",
+    "test:debug": "playwright test tests/specs/universal-ui-test.spec.js --debug"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "sql.js": "^1.10.2",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "sql.js": "^1.10.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.1.0",
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.0",
     "@vitejs/plugin-react": "^5.0.3",
     "electron": "^38.1.2",
     "electron-builder": "^25.1.8",

@@ -37,6 +37,17 @@ const ModalAddComponent = ({
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [localCategories, setLocalCategories] = useState(categories);
+
+  // Функция для загрузки категорий
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await window.api.database.getCategories();
+      setLocalCategories(categoriesData);
+    } catch (error) {
+      console.error('❌ Ошибка загрузки категорий:', error);
+    }
+  };
 
   // Функция для получения текущей даты и времени в нужном формате
   const getCurrentDateTime = () => {
@@ -189,6 +200,9 @@ const ModalAddComponent = ({
   // Сбрасываем форму при открытии/закрытии
   useEffect(() => {
     if (isOpen) {
+
+      loadCategories();
+
       if (editMode && initialComponentData) {
         console.log('📝 Edit mode - initial data:', initialComponentData);
 
@@ -385,7 +399,7 @@ const ModalAddComponent = ({
                     required
                   >
                     <option value="">Выберите категорию</option>
-                    {categories.map(category => (
+                    {localCategories.map(category => (     
                       <option key={category.id} value={category.id}>
                         {category.name}
                       </option>
@@ -444,45 +458,6 @@ const ModalAddComponent = ({
               </div>
             </div>
 
-
-
-            {/* Количество */}
-            {/*
-            <div className="form-section">
-              <h3 className="section-title">Количество</h3>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <input
-                    type="number"
-                    className="form-control"
-                    // placeholder="0"
-                    value={formData.quantity}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      console.log('🔢 Raw input value:', value, 'Type:', typeof value);
-                      let numericValue;
-                      if (value === '' || value === null || value === undefined) {
-                        numericValue = 0;
-                      } else {
-                        numericValue = Number(value);
-                        if (isNaN(numericValue)) {
-                          numericValue = 0;
-                        }
-                      }
-
-                      console.log('🔢 Converted value:', numericValue);
-                      handleInputChange('quantity', numericValue);
-                    }}
-                    onFocus={(e) => {
-                      e.target.select();
-                    }}
-                    min="0"
-                    step="1"
-                  />
-                </div>
-              </div>
-            </div> */}
-            {/* Количество */}
             <div className="form-section">
               <h3 className="section-title">Количество</h3>
               <div className="form-row">
@@ -493,7 +468,7 @@ const ModalAddComponent = ({
                     value={formData.quantity === 0 ? "" : formData.quantity} // Показываем пустую строку вместо 0
                     onChange={(e) => {
                       const value = e.target.value;
-                      
+
                       if (value === '') {
                         handleInputChange('quantity', 0);
                       } else {
@@ -641,9 +616,9 @@ const ModalAddComponent = ({
                     onChange={handleImageChange}
                     className="file-input"
                   />
-                  
+
                   <label htmlFor="component-image" className="file-input-label">
-                  <FaFileUpload size={14} />                 
+                    <FaFileUpload size={14} />
                     Загрузить изображение
                   </label>
                 </div>

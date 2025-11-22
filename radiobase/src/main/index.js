@@ -269,7 +269,7 @@ function setupDatabaseHandlers() {
           webSecurity: true
         },
         title: 'Datasheet - ' + url,
-        icon: icon // используем ту же иконку что и у основного приложения
+        icon: icon_3 // используем ту же иконку что и у основного приложения
       });
   
       // Загружаем URL

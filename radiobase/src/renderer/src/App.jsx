@@ -13,6 +13,7 @@ function App() {
   const [editingComponent, setEditingComponent] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [componentVersion, setComponentVersion] = useState(0);
 
   // Функция для сброса поиска
   const handleClearSearch = () => {
@@ -51,7 +52,17 @@ function App() {
 
         // Обновляем выбранный компонент
         if (selectedComponent && selectedComponent.id === componentData.id) {
-          setSelectedComponent(componentData);
+          const updatedComponent = await window.api.database.getComponent(componentData.id);
+        
+          // ✅ СОЗДАЕМ НОВЫЙ ОБЪЕКТ С QUANTITY
+          const finalComponent = {
+            ...updatedComponent,
+            quantity: componentData.quantity // Принудительно добавляем quantity
+          };
+          
+          console.log('🔢 Final component with quantity:', finalComponent.quantity);
+          console.log('🔄 Full final component:', finalComponent);
+          setSelectedComponent(finalComponent); // ✅ Устанавливаем новый объект
         }
 
         return { success: true };
@@ -136,6 +147,7 @@ function App() {
               category={selectedCategory}
               component={selectedComponent}
               onEdit={handleEditComponent}
+              version={componentVersion}
             />
           ) : selectedCategory ? (
             <div className="welcome-message">

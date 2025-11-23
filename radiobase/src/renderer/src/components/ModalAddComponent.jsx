@@ -399,7 +399,7 @@ const ModalAddComponent = ({
                     required
                   >
                     <option value="">Выберите категорию</option>
-                    {localCategories.map(category => (     
+                    {localCategories.map(category => (
                       <option key={category.id} value={category.id}>
                         {category.name}
                       </option>
@@ -462,7 +462,7 @@ const ModalAddComponent = ({
               <h3 className="section-title">Количество</h3>
               <div className="form-row">
                 <div className="form-group full-width">
-                  <input
+                  {/* <input
                     type="number"
                     className="form-control"
                     value={formData.quantity === 0 ? "" : formData.quantity} // Показываем пустую строку вместо 0
@@ -493,7 +493,17 @@ const ModalAddComponent = ({
                     }}
                     min="0"
                     step="1"
+                  /> */}
+
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={formData.quantity}
+                    onChange={(e) => handleInputChange('quantity', parseInt(e.target.value) || 0)}
+                    min="0"
+                    step="1"
                   />
+
                 </div>
               </div>
             </div>

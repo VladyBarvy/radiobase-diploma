@@ -485,7 +485,13 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
         initialName={editModal.category?.name || ''}
       />
 
-
+      <ModalAddComponent
+        isOpen={isComponentModalOpen}
+        onClose={() => setIsComponentModalOpen(false)}
+        onSave={handleSaveComponent}
+        categories={categories}
+        selectedCategory={selectedCategory}
+      />
 
       {/* Контекстное меню */}
       <ContextMenu

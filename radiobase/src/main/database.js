@@ -261,6 +261,11 @@ class ComponentsDatabase {
       WHERE c.id = ?
     `, [id]);
     
+      // ДИАГНОСТИКА
+      console.log('🔍 RAW DB COMPONENT:', component);
+      console.log('🔍 QUANTITY FIELD EXISTS:', component && 'quantity' in component);
+      console.log('🔍 ALL FIELDS:', component && Object.keys(component));
+
     if (component && component.parameters && typeof component.parameters === 'string') {
       try {
         component.parameters = JSON.parse(component.parameters);
@@ -272,6 +277,7 @@ class ComponentsDatabase {
       component.parameters = component.parameters || {};
     }
     
+    console.log('✅ Final component object:', component);
     return component;
   }
 
@@ -308,6 +314,8 @@ class ComponentsDatabase {
       return { success: false, error: "ID компонента обязателен для обновления" };
     }
   
+    console.log('📊 Updating component with data:', componentData);
+
     const result = this.run(`
       UPDATE components 
       SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
@@ -326,6 +334,8 @@ class ComponentsDatabase {
       componentData.id
     ]);
   
+    console.log('📊 Update result:', result);
+
     return { 
       success: result.success, 
       changes: result.changes,

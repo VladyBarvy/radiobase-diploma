@@ -309,39 +309,98 @@ class ComponentsDatabase {
     return { success: false, error: "Ошибка добавления компонента" };
   }
 
-  updateComponent(componentData) {
-    if (!componentData.id) {
-      return { success: false, error: "ID компонента обязателен для обновления" };
-    }
+  // updateComponent(componentData) {
+  //   if (!componentData.id) {
+  //     return { success: false, error: "ID компонента обязателен для обновления" };
+  //   }
   
-    console.log('📊 Updating component with data:', componentData);
+  //   console.log('📊 Updating component with data:', componentData);
 
-    const result = this.run(`
-      UPDATE components 
-      SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
-          quantity = ?, updated_at = ?, parameters = ?, image_data = ?, description = ?
-      WHERE id = ?
-    `, [
-      componentData.category_id,
-      componentData.name,
-      componentData.storage_cell,
-      componentData.datasheet_url,
-      componentData.quantity,
-      new Date().toISOString(),
-      JSON.stringify(componentData.parameters),
-      componentData.image_data,
-      componentData.description,
-      componentData.id
-    ]);
+  //   const result = this.run(`
+  //     UPDATE components 
+  //     SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
+  //         quantity = ?, updated_at = ?, parameters = ?, image_data = ?, description = ?
+  //     WHERE id = ?
+  //   `, [
+  //     componentData.category_id,
+  //     componentData.name,
+  //     componentData.storage_cell,
+  //     componentData.datasheet_url,
+  //     componentData.quantity,
+  //     new Date().toISOString(),
+  //     JSON.stringify(componentData.parameters),
+  //     componentData.image_data,
+  //     componentData.description,
+  //     componentData.id
+  //   ]);
   
-    console.log('📊 Update result:', result);
+  //   console.log('📊 Update result:', result);
 
-    return { 
-      success: result.success, 
-      changes: result.changes,
-      error: result.success && result.changes === 0 ? "Компонент не найден" : null
-    };
+  //   return { 
+  //     success: result.success, 
+  //     changes: result.changes,
+  //     error: result.success && result.changes === 0 ? "Компонент не найден" : null
+  //   };
+  // }
+
+
+
+  // database.js - updateComponent метод
+updateComponent(componentData) {
+  if (!componentData.id) {
+    return { success: false, error: "ID компонента обязателен для обновления" };
   }
+  
+  // Убедитесь, что parameters - это объект перед сериализацией
+  let parametersString = '{}';
+  if (componentData.parameters) {
+    if (typeof componentData.parameters === 'string') {
+      try {
+        // Проверяем, валидный ли JSON
+        JSON.parse(componentData.parameters);
+        parametersString = componentData.parameters;
+      } catch {
+        parametersString = '{}';
+      }
+    } else if (typeof componentData.parameters === 'object') {
+      parametersString = JSON.stringify(componentData.parameters);
+    }
+  }
+  
+  const result = this.run(`
+    UPDATE components 
+    SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
+        quantity = ?, updated_at = ?, parameters = ?, image_data = ?, description = ?
+    WHERE id = ?
+  `, [
+    componentData.category_id,
+    componentData.name,
+    componentData.storage_cell,
+    componentData.datasheet_url,
+    componentData.quantity,
+    new Date().toISOString(),
+    parametersString, // <-- Исправленная сериализация
+    componentData.image_data,
+    componentData.description,
+    componentData.id
+  ]);
+  
+  return { 
+    success: result.success, 
+    changes: result.changes,
+    error: result.success && result.changes === 0 ? "Компонент не найден" : null
+  };
+}
+
+
+
+
+
+
+
+
+
+
 
   deleteComponent(id) {
     const result = this.run("DELETE FROM components WHERE id = ?", [id]);

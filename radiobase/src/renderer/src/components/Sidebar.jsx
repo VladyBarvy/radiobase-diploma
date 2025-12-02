@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
 import ModalAddCategory from './ModalAddCategory.jsx';
 import ContextMenu from './ContextMenu.jsx';
@@ -343,41 +344,67 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
   };
 
 
+  // const handleUpdateComponent = async (componentData) => {
+  //   try {
+  //     console.log('🔄 Updating component:', componentData);
+
+  //     const result = await window.api.database.updateComponent(componentData);
+  //     if (result.success) {
+  //       console.log('✅ Компонент обновлен:', componentData.id);
+
+  //       // Перезагружаем компоненты текущей категории
+  //       if (selectedCategory) {
+  //         await loadComponents(selectedCategory.id);
+  //       }
+
+  //       // Обновляем выбранный компонент
+  //       if (onComponentSelect) {
+  //         const updatedComponent = await window.api.database.getComponent(componentData.id);
+  //         onComponentSelect(updatedComponent);
+  //       }
+
+  //       // Уведомляем родительский компонент об обновлении
+  //       if (onComponentUpdated) {
+  //         const updatedComponent = await window.api.database.getComponent(componentData.id);
+  //         onComponentUpdated(updatedComponent);
+  //       }
+
+  //       return { success: true };
+  //     } else {
+  //       alert(`❌ Ошибка: ${result.error}`);
+  //       throw new Error(result.error);
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Ошибка обновления компонента:', error);
+  //     throw error;
+  //   }
+  // };
+
+
+
   const handleUpdateComponent = async (componentData) => {
-    try {
-      console.log('🔄 Updating component:', componentData);
-
-      const result = await window.api.database.updateComponent(componentData);
-      if (result.success) {
-        console.log('✅ Компонент обновлен:', componentData.id);
-
-        // Перезагружаем компоненты текущей категории
-        if (selectedCategory) {
-          await loadComponents(selectedCategory.id);
-        }
-
-        // Обновляем выбранный компонент
-        if (onComponentSelect) {
-          const updatedComponent = await window.api.database.getComponent(componentData.id);
-          onComponentSelect(updatedComponent);
-        }
-
-        // Уведомляем родительский компонент об обновлении
-        if (onComponentUpdated) {
-          const updatedComponent = await window.api.database.getComponent(componentData.id);
-          onComponentUpdated(updatedComponent);
-        }
-
-        return { success: true };
-      } else {
-        alert(`❌ Ошибка: ${result.error}`);
-        throw new Error(result.error);
+  try {
+    const result = await window.api.database.updateComponent(componentData);
+    if (result.success) {
+      console.log('✅ Component updated');
+      
+      // ТОЛЬКО ОДИН вызов для обновления
+      if (onComponentUpdated) {
+        // Просто уведомляем, что компонент обновлен
+        onComponentUpdated({ id: componentData.id });
       }
-    } catch (error) {
-      console.error('❌ Ошибка обновления компонента:', error);
-      throw error;
+      
+      // Не вызываем onComponentSelect - пусть App сам решает
+      return { success: true };
     }
-  };
+  } catch (error) {
+    console.error('❌ Error updating component:', error);
+    throw error;
+  }
+};
+
+
+
 
 
   // Функция для выполнения поиска

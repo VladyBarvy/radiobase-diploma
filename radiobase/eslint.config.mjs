@@ -1,30 +1,50 @@
 import eslint from '@electron-toolkit/eslint-config'
 import eslintConfigPrettier from '@electron-toolkit/eslint-config-prettier'
-import eslintPluginReact from 'eslint-plugin-react'
-import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
-import eslintPluginReactRefresh from 'eslint-plugin-react-refresh'
+//import eslintPluginReact from 'eslint-plugin-react'
+//import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
+//import eslintPluginReactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
   { ignores: ['**/node_modules', '**/dist', '**/out'] },
   eslint,
-  eslintPluginReact.configs.flat.recommended,
-  eslintPluginReact.configs.flat['jsx-runtime'],
-  {
-    settings: {
-      react: {
-        version: 'detect'
+  //eslintPluginReact.configs.flat.recommended,
+  //eslintPluginReact.configs.flat['jsx-runtime'],
+  // {
+  //   settings: {
+  //     react: {
+  //       version: 'detect'
+  //     }
+  //   }
+  // },
+  // {
+  //   files: ['**/*.{js,jsx}'],
+  //   plugins: {
+  //     'react-hooks': eslintPluginReactHooks,
+  //     'react-refresh': eslintPluginReactRefresh
+  //   },
+  //   rules: {
+  //     ...eslintPluginReactHooks.configs.recommended.rules,
+  //     ...eslintPluginReactRefresh.configs.vite.rules
+  //   }
+  // },
+  //   {
+  //   rules: {
+  //     'react/prop-types': 'off', // Отключаем проверку prop-types
+  //     // Можно добавить другие правила для отключения:
+  //     'no-unused-vars': 'warn', // Предупреждение вместо ошибки
+  //     'react/react-in-jsx-scope': 'off', // Если используете React 17+
+  //   }
+  // },
+    {
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true // Разрешить JSX
+        }
       }
-    }
-  },
-  {
-    files: ['**/*.{js,jsx}'],
-    plugins: {
-      'react-hooks': eslintPluginReactHooks,
-      'react-refresh': eslintPluginReactRefresh
     },
     rules: {
-      ...eslintPluginReactHooks.configs.recommended.rules,
-      ...eslintPluginReactRefresh.configs.vite.rules
+      // Базовые правила для JSX
     }
   },
   eslintConfigPrettier

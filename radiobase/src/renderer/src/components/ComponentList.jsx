@@ -218,10 +218,12 @@ const ImageModal = React.memo(({
   );
 });
 
-const ComponentList = ({ category, component, onEdit }) => {
+const ComponentList = ({ category, component, onEdit, version }) => {
   // 🎯 СТАБИЛИЗИРУЕМ ПРОПСЫ
   const stableCategory = useMemo(() => category, [category?.id]);
-  const stableComponent = useMemo(() => component, [component?.id]);
+  //const stableComponent = useMemo(() => component, [component?.id]);
+
+  const stableComponent = useMemo(() => component, [component, version]);
   
   // 🎯 ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ОТЛАДКИ
   useRenderDebug('ComponentList', { 

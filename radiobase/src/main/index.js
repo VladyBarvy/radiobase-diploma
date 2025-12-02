@@ -292,6 +292,13 @@ function setupDatabaseHandlers() {
     }
   });
 
+
+
+  ipcMain.handle('database:forceRefreshComponent', async (_, id) => {
+  console.log('🔄 Force refreshing component:', id);
+  return await db.getComponent(id); // Получаем свежие данные из БД
+});
+
   // Добавляем хендлер для получения информации о пути БД
   ipcMain.handle('database:getDbInfo', async () => {
     const stats = await db.getDatabaseStats()

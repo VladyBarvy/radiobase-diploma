@@ -309,42 +309,7 @@ class ComponentsDatabase {
     return { success: false, error: "Ошибка добавления компонента" };
   }
 
-  // updateComponent(componentData) {
-  //   if (!componentData.id) {
-  //     return { success: false, error: "ID компонента обязателен для обновления" };
-  //   }
   
-  //   console.log('📊 Updating component with data:', componentData);
-
-  //   const result = this.run(`
-  //     UPDATE components 
-  //     SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
-  //         quantity = ?, updated_at = ?, parameters = ?, image_data = ?, description = ?
-  //     WHERE id = ?
-  //   `, [
-  //     componentData.category_id,
-  //     componentData.name,
-  //     componentData.storage_cell,
-  //     componentData.datasheet_url,
-  //     componentData.quantity,
-  //     new Date().toISOString(),
-  //     JSON.stringify(componentData.parameters),
-  //     componentData.image_data,
-  //     componentData.description,
-  //     componentData.id
-  //   ]);
-  
-  //   console.log('📊 Update result:', result);
-
-  //   return { 
-  //     success: result.success, 
-  //     changes: result.changes,
-  //     error: result.success && result.changes === 0 ? "Компонент не найден" : null
-  //   };
-  // }
-
-
-
   // database.js - updateComponent метод
 updateComponent(componentData) {
   if (!componentData.id) {

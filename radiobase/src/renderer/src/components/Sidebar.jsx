@@ -344,44 +344,6 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
   };
 
 
-  // const handleUpdateComponent = async (componentData) => {
-  //   try {
-  //     console.log('🔄 Updating component:', componentData);
-
-  //     const result = await window.api.database.updateComponent(componentData);
-  //     if (result.success) {
-  //       console.log('✅ Компонент обновлен:', componentData.id);
-
-  //       // Перезагружаем компоненты текущей категории
-  //       if (selectedCategory) {
-  //         await loadComponents(selectedCategory.id);
-  //       }
-
-  //       // Обновляем выбранный компонент
-  //       if (onComponentSelect) {
-  //         const updatedComponent = await window.api.database.getComponent(componentData.id);
-  //         onComponentSelect(updatedComponent);
-  //       }
-
-  //       // Уведомляем родительский компонент об обновлении
-  //       if (onComponentUpdated) {
-  //         const updatedComponent = await window.api.database.getComponent(componentData.id);
-  //         onComponentUpdated(updatedComponent);
-  //       }
-
-  //       return { success: true };
-  //     } else {
-  //       alert(`❌ Ошибка: ${result.error}`);
-  //       throw new Error(result.error);
-  //     }
-  //   } catch (error) {
-  //     console.error('❌ Ошибка обновления компонента:', error);
-  //     throw error;
-  //   }
-  // };
-
-
-
   const handleUpdateComponent = async (componentData) => {
   try {
     const result = await window.api.database.updateComponent(componentData);

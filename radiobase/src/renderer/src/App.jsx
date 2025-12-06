@@ -53,16 +53,14 @@ function App() {
         // Обновляем выбранный компонент
         if (selectedComponent && selectedComponent.id === componentData.id) {
           const updatedComponent = await window.api.database.getComponent(componentData.id);
-        
-          // ✅ СОЗДАЕМ НОВЫЙ ОБЪЕКТ С QUANTITY
-          const finalComponent = {
-            ...updatedComponent,
-            quantity: componentData.quantity // Принудительно добавляем quantity
-          };
-          
-          console.log('🔢 Final component with quantity:', finalComponent.quantity);
-          console.log('🔄 Full final component:', finalComponent);
-          setSelectedComponent(finalComponent); // ✅ Устанавливаем новый объект
+          setSelectedComponent({ ...updatedComponent });
+          setComponentVersion(prev => prev + 1);
+
+          console.log('🔄 Updated component data:', updatedComponent);
+          console.log('🔄 Previous component data:', selectedComponent);
+
+          //setSelectedComponent(updatedComponent);
+          //setSelectedComponent(componentData);
         }
 
         return { success: true };
@@ -187,3 +185,11 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
+

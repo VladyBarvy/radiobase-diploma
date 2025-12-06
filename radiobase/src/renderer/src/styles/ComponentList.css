@@ -527,3 +527,56 @@
   font-size: 14px;
   color: white;
 }
+
+
+/* Стили для кнопки загрузки PDF */
+.file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+}
+
+.file-name {
+  font-size: 14px;
+  color: #4a5568;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.btn-remove-file {
+  background: none;
+  border: none;
+  color: #e53e3e;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+}
+
+
+
+/* В ComponentList.css */
+.datasheet-button {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.datasheet-button:hover {
+  background: #c53030;
+  transform: scale(1.05);
+}

@@ -11,7 +11,7 @@ import {
   FaPhotoVideo,    // Фото/видео
   FaCamera         // Камера
 } from 'react-icons/fa';
-import { validateForm, validationRules } from './validationRules';
+import { validateForm, validationRules, validateImage } from './validationRules';
 
 const ModalAddComponent = ({
   isOpen,
@@ -292,18 +292,52 @@ const ModalAddComponent = ({
     }
   };
 
+
+
+
+
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
+      console.log('📁 Image file selected:', file.name, file.size);
+
+      // Валидация изображения
+      const imageError = validateImage(file);
+      if (imageError) {
+        console.error('❌ Image validation error:', imageError);
+        setErrors(prev => ({ ...prev, image: imageError }));
+        return;
+      }
+
+      // Очищаем ошибку
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors['image'];
+        return newErrors;
+      });
+
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target.result);
+        const imageData = e.target.result;
+        console.log('🖼️ Image loaded, size:', imageData.length);
+        setImagePreview(imageData);
+
+        // КРИТИЧЕСКО ВАЖНО: Сохраняем изображение в formData
+        setFormData(prev => ({
+          ...prev,
+          image_data: imageData
+        }));
       };
+
+      reader.onerror = (error) => {
+        console.error('❌ Error reading image file:', error);
+        setErrors(prev => ({ ...prev, image: 'Ошибка чтения файла' }));
+      };
+
       reader.readAsDataURL(file);
     }
   };
-
 
 
 
@@ -320,9 +354,46 @@ const ModalAddComponent = ({
     return !!errors[fieldName];
   };
 
-  // Функция для сброса ошибки при изменении поля
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleFieldChange = (field, value) => {
-    handleInputChange(field, value);
+    console.log(`🔄 Field change: ${field} =`, value, `(type: ${typeof value})`);
+
+    // Обрабатываем quantity отдельно
+    if (field === 'quantity') {
+      // Убедимся, что это число
+      const numValue = typeof value === 'string' && value.trim() === ''
+        ? 0
+        : Number(value) || 0;
+
+      console.log(`🔢 Processed quantity: ${value} -> ${numValue}`);
+
+      setFormData(prev => ({
+        ...prev,
+        [field]: numValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
 
     // Сбрасываем ошибку при изменении поля
     if (errors[field]) {
@@ -337,93 +408,21 @@ const ModalAddComponent = ({
 
 
 
-
-
-
-
-
-
-
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-
-  //   console.log('📝 Form submitted with data:', {
-  //     formData,
-  //     newParameters,
-  //     imagePreview: !!imagePreview,
-  //     editMode,
-  //     initialComponentData
-  //   });
-
-
-  //   // Валидация
-  //   if (!formData.category_id) {
-  //     alert('Выберите категорию');
-  //     return;
-  //   }
-
-  //   if (!formData.name.trim()) {
-  //     alert('Введите название компонента');
-  //     return;
-  //   }
-
-  //   // Собираем параметры в объект
-  //   const parameters = {};
-  //   newParameters.forEach(param => {
-  //     if (param.key.trim() && param.value.trim()) {
-  //       parameters[param.key.trim()] = param.value.trim();
-  //     }
-  //   });
-
-  //   console.log('💾 Saving parameters:', parameters);
-
-  //   const componentData = {
-  //     ...formData,
-  //     parameters,
-  //     updated_at: new Date().toISOString(),
-  //     image_data: imagePreview
-  //   };
-
-  //   // Добавляем ID компонента в режиме редактирования
-  //   if (editMode && initialComponentData) {
-  //     componentData.id = initialComponentData.id;
-  //   }
-
-  //   console.log('💾 Final component data to save:', componentData);
-
-  //   try {
-  //     await onSave(componentData);
-  //     console.log('✅ Save successful');
-  //     setHasUnsavedChanges(false);
-  //     onClose();
-  //   } catch (error) {
-  //     console.error('Ошибка при сохранении компонента:', error);
-  //     console.error('❌ Error saving component:', error);
-  //     alert('Не удалось сохранить компонент');
-  //   }
-  // };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-
-    // console.log('📝 Form submitted with data:', {
-    //   formData,
-    //   newParameters,
-    //   imagePreview: !!imagePreview,
-    //   editMode,
-    //   initialComponentData
-    // });
-
+    console.log('🔍 DEBUG: Form data before validation:', {
+      formData, // Что здесь в quantity?
+      quantityValue: formData.quantity,
+      quantityType: typeof formData.quantity
+    });
 
     // Валидация формы
     const validation = validateForm(formData, newParameters);
 
     if (!validation.isValid) {
       setErrors(validation.errors);
+      console.log('❌ Validation errors:', validation.errors);
 
       // Показываем первую ошибку
       const firstErrorKey = Object.keys(validation.errors)[0];
@@ -437,17 +436,10 @@ const ModalAddComponent = ({
     // Очищаем ошибки
     setErrors({});
 
-
-    // Валидация
-    if (!formData.category_id) {
-      alert('Выберите категорию');
-      return;
-    }
-
-    if (!formData.name.trim()) {
-      alert('Введите название компонента');
-      return;
-    }
+    console.log('🔍 DEBUG: Before creating componentData:', {
+      formDataQuantity: formData.quantity,
+      parameters: newParameters
+    });
 
     // Собираем параметры в объект
     const parameters = {};
@@ -463,7 +455,7 @@ const ModalAddComponent = ({
       ...formData,
       parameters,
       updated_at: new Date().toISOString(),
-      image_data: imagePreview
+      image_data: formData.image_data || imagePreview || null
     };
 
     // Добавляем ID компонента в режиме редактирования
@@ -472,6 +464,10 @@ const ModalAddComponent = ({
     }
 
     console.log('💾 Final component data to save:', componentData);
+    console.log('🔍 DEBUG: quantity in final data:', {
+      value: componentData.quantity,
+      type: typeof componentData.quantity
+    });
 
     try {
       await onSave(componentData);
@@ -484,9 +480,6 @@ const ModalAddComponent = ({
       alert('Не удалось сохранить компонент');
     }
   };
-
-
-
 
 
 
@@ -524,28 +517,6 @@ const ModalAddComponent = ({
 
 
 
-            {/* Категория */}
-            {/* 
-            <div className="form-section">
-              <h3 className="section-title">Категория</h3>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <select
-                    className="form-control"
-                    value={formData.category_id}
-                    onChange={(e) => handleInputChange('category_id', e.target.value)}
-                    required
-                  >
-                    <option value="">Выберите категорию</option>
-                    {localCategories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div> */}
 
             {/* Категория */}
             <div className="form-section">
@@ -576,22 +547,7 @@ const ModalAddComponent = ({
 
 
 
-            {/* Название компонента */}
-            {/* <div className="form-section">
-              <h3 className="section-title">Название</h3>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Введите название компонента"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            </div> */}
+
             {/* Название компонента */}
             <div className="form-section">
               <h3 className="section-title">Название</h3>
@@ -619,21 +575,7 @@ const ModalAddComponent = ({
 
 
 
-            {/* Ячейка хранения */}
-            {/* <div className="form-section">
-              <h3 className="section-title">Ячейка хранения</h3>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Например: A-12-5"
-                    value={formData.storage_cell}
-                    onChange={(e) => handleInputChange('storage_cell', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div> */}
+
 
 
             {/* Ячейка хранения */}
@@ -668,21 +610,6 @@ const ModalAddComponent = ({
 
 
             {/* Ссылка на datasheet */}
-            {/* <div className="form-section">
-              <h3 className="section-title">Ссылка на datasheet</h3>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <input
-                    type="url"
-                    className="form-control"
-                    placeholder="https://example.com/datasheet.pdf"
-                    value={formData.datasheet_url}
-                    onChange={(e) => handleInputChange('datasheet_url', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div> */}
-            {/* Ссылка на datasheet */}
             <div className="form-section">
               <h3 className="section-title">Ссылка на datasheet</h3>
               <div className="form-row">
@@ -715,23 +642,6 @@ const ModalAddComponent = ({
 
 
             {/* Количество */}
-            {/* <div className="form-section">
-              <h3 className="section-title">Количество</h3>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={formData.quantity}
-                    onChange={(e) => handleInputChange('quantity', parseInt(e.target.value) || 0)}
-                    min="0"
-                    step="1"
-                  />
-
-                </div>
-              </div>
-            </div> */}
-            {/* Количество */}
             <div className="form-section">
               <h3 className="section-title">Количество</h3>
               <div className="form-row">
@@ -739,8 +649,23 @@ const ModalAddComponent = ({
                   <input
                     type="number"
                     className={`form-control ${hasError('quantity') ? 'form-control-error' : ''}`}
-                    value={formData.quantity === 0 ? "" : formData.quantity}
-                    onChange={(e) => handleFieldChange('quantity', e.target.value)}
+                    value={formData.quantity}
+                    onChange={(e) => {
+                      const rawValue = e.target.value;
+                      const numValue = rawValue === '' ? 0 : parseInt(rawValue, 10);
+
+                      // Используем handleInputChange вместо handleFieldChange
+                      handleInputChange('quantity', numValue);
+
+                      // Сбрасываем ошибку
+                      if (errors['quantity']) {
+                        setErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors['quantity'];
+                          return newErrors;
+                        });
+                      }
+                    }}
                     min="0"
                     max="999999"
                     step="1"
@@ -751,6 +676,8 @@ const ModalAddComponent = ({
                 </div>
               </div>
             </div>
+
+
 
 
 
@@ -779,21 +706,6 @@ const ModalAddComponent = ({
 
 
             {/* Описание */}
-            {/* <div className="form-section">
-              <h3 className="section-title">Описание</h3>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <textarea
-                    className="form-control textarea-description"
-                    placeholder="Введите описание компонента и его применение..."
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    rows="4"
-                  />
-                </div>
-              </div>
-            </div> */}
-            {/* Описание */}
             <div className="form-section">
               <h3 className="section-title">Описание</h3>
               <div className="form-row">
@@ -821,66 +733,6 @@ const ModalAddComponent = ({
 
 
 
-
-            {/* Параметры - ТАБЛИЧНЫЙ ВИД */}
-            {/* <div className="form-section">
-              <h3 className="section-title">Параметры</h3>
-
-              <div className="parameters-table-container">
-              
-                <div className="parameters-table-header">
-                  <div className="parameter-name-header">Параметр</div>
-                  <div className="parameter-value-header">Значение</div>
-                  <div className="parameter-actions-header">Действия</div>
-                </div>
-
-               
-                <div className="parameters-table-body">
-                  {newParameters.map((param, index) => (
-                    <div key={index} className="parameter-table-row">
-                      <div className="parameter-name-cell">
-                        <input
-                          type="text"
-                          className="form-control parameter-input"
-                          placeholder="Например: Напряжение питания"
-                          value={param.key}
-                          onChange={(e) => handleParameterChange(index, 'key', e.target.value)}
-                        />
-                      </div>
-                      <div className="parameter-value-cell">
-                        <input
-                          type="text"
-                          className="form-control parameter-input"
-                          placeholder="Например: 5 В"
-                          value={param.value}
-                          onChange={(e) => handleParameterChange(index, 'value', e.target.value)}
-                        />
-                      </div>
-                      <div className="parameter-actions-cell">
-                        {newParameters.length > 1 && (
-                          <button
-                            type="button"
-                            className="parameter-remove-btn table-remove-btn"
-                            onClick={() => removeParameterField(index)}
-                            title="Удалить параметр"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="add-param-btn table-add-btn"
-                onClick={addParameterField}
-              >
-                + Добавить параметр
-              </button>
-            </div> */}
             {/* Параметры - ТАБЛИЧНЫЙ ВИД */}
             <div className="form-section">
               <h3 className="section-title">Параметры</h3>
@@ -1016,36 +868,6 @@ const ModalAddComponent = ({
 
 
             {/* Изображение компонента */}
-            {/* <div className="form-section">
-              <h3 className="section-title">Изображение компонента</h3>
-              <div className="image-upload-section">
-                <div className="image-preview">
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Предпросмотр" className="image-preview-img" />
-                  ) : (
-                    <div className="image-placeholder">
-                      <span>Изображение не загружено</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="file-input-wrapper">
-                  <input
-                    type="file"
-                    id="component-image"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="file-input"
-                  />
-
-                  <label htmlFor="component-image" className="file-input-label">
-                    <FaFileUpload size={14} />
-                    Загрузить изображение
-                  </label>
-                </div>
-              </div>
-            </div> */}
-            {/* Изображение компонента */}
             <div className="form-section">
               <h3 className="section-title">Изображение компонента</h3>
               <div className="image-upload-section">
@@ -1146,3 +968,4 @@ const ModalAddComponent = ({
 };
 
 export default ModalAddComponent;
+

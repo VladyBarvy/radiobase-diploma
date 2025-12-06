@@ -624,3 +624,67 @@
 .char-counter.error {
   color: #e53e3e;
 }
+
+
+/* Стили для загрузки PDF */
+.file-upload-section {
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  background-color: #f7fafc;
+  transition: all 0.2s;
+}
+
+.file-upload-section:hover {
+  border-color: #4299e1;
+  background-color: #f0f7ff;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 14px;
+  color: #2d3748;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-remove-file {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-remove-file:hover {
+  background: #c53030;
+}
+
+/* Стиль для кнопки загрузки PDF */
+.file-input-label.pdf {
+  background: #e53e3e;
+}
+
+.file-input-label.pdf:hover {
+  background: #c53030;
+}

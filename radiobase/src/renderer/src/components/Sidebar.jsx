@@ -217,7 +217,11 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
 
   const handleSaveComponent = async (componentData) => {
     try {
+      console.log('💾 Saving component with image:', !!componentData.image_data);
       const result = await window.api.database.addComponent(componentData);
+
+     
+
       if (result.success) {
         console.log('✅ Компонент добавлен:', result.id);
 

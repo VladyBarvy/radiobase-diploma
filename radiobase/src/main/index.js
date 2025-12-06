@@ -55,7 +55,11 @@ function createWindow() {
   }
 
   // Логирование всех событий
-  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+  // mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+  //   console.log(`📱 Renderer Console [${level}]: ${message}`)
+  // })
+
+    mainWindow.webContents.on('console-message', (event, level, message) => {
     console.log(`📱 Renderer Console [${level}]: ${message}`)
   })
 

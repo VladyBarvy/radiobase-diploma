@@ -1,6 +1,10 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { FaEdit } from 'react-icons/fa';
 import '../styles/ComponentList.css';
+import ComponentPdfSection from './ComponentPdfSection';
+import {
+  FaFilePdf
+} from 'react-icons/fa';
 
 // 🎯 ХУКИ ДЛЯ ОТЛАДКИ
 const useRenderDebug = (componentName, props) => {
@@ -9,15 +13,15 @@ const useRenderDebug = (componentName, props) => {
 
   useEffect(() => {
     renderCount.current += 1;
-    
+
     if (process.env.NODE_ENV !== 'production') {
       console.group(`🔄 ${componentName} Render #${renderCount.current}`);
       console.log('📅 Timestamp:', new Date().toLocaleTimeString());
-      
-      const changedProps = Object.keys(props).filter(key => 
+
+      const changedProps = Object.keys(props).filter(key =>
         props[key] !== prevProps.current[key]
       );
-      
+
       if (changedProps.length > 0) {
         console.log('📊 Changed props:', changedProps);
         changedProps.forEach(prop => {
@@ -29,10 +33,10 @@ const useRenderDebug = (componentName, props) => {
       } else {
         console.log('✅ No props changed (likely internal state update)');
       }
-      
+
       console.groupEnd();
     }
-    
+
     prevProps.current = { ...props };
   });
 };
@@ -40,19 +44,19 @@ const useRenderDebug = (componentName, props) => {
 // 🎯 УТИЛИТА ДЛЯ ЗАМЕРА ПРОИЗВОДИТЕЛЬНОСТИ
 const createPerformanceMeasure = (operationName) => {
   const startTime = performance.now();
-  
+
   return () => {
     const endTime = performance.now();
     const duration = endTime - startTime;
-    
+
     if (process.env.NODE_ENV !== 'production') {
       console.log(`⏱️ ${operationName}: ${duration.toFixed(2)}ms`);
-      
+
       if (duration > 16) {
         console.warn(`🐢 Slow operation detected: ${operationName}`);
       }
     }
-    
+
     return duration;
   };
 };
@@ -62,23 +66,23 @@ const dateFormatCache = new Map();
 
 const formatDateOptimized = (dateString) => {
   if (!dateString) return 'Не обновлялся';
-  
+
   if (dateFormatCache.has(dateString)) {
     return dateFormatCache.get(dateString);
   }
-  
+
   try {
     const date = new Date(dateString);
-    
+
     // Упрощенный формат без локализации
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    
+
     const result = `${day}.${month}.${year} ${hours}:${minutes}`;
-    
+
     dateFormatCache.set(dateString, result);
     return result;
   } catch {
@@ -122,13 +126,13 @@ const ParametersTable = React.memo(({ parameters }) => {
 });
 
 // 🎯 МЕМОИЗИРОВАННЫЙ КОМПОНЕНТ ДЛЯ МОДАЛЬНОГО ОКНА
-const ImageModal = React.memo(({ 
-  isOpen, 
-  onClose, 
-  onSave, 
-  imagePreview, 
+const ImageModal = React.memo(({
+  isOpen,
+  onClose,
+  onSave,
+  imagePreview,
   component,
-  hasImage 
+  hasImage
 }) => {
   const [localImagePreview, setLocalImagePreview] = useState(imagePreview);
 
@@ -224,15 +228,33 @@ const ComponentList = ({ category, component, onEdit, version }) => {
   //const stableComponent = useMemo(() => component, [component?.id]);
 
   const stableComponent = useMemo(() => component, [component, version]);
-  
+
   // 🎯 ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ОТЛАДКИ
-  useRenderDebug('ComponentList', { 
-    category: stableCategory, 
-    component: stableComponent 
+  useRenderDebug('ComponentList', {
+    category: stableCategory,
+    component: stableComponent
   });
-  
+
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+
+
+
+
+  // Внутри компонента добавить состояние для PDF
+  const [pdfInfo, setPdfInfo] = useState({
+    has_pdf: !!stableComponent?.pdf_data,
+    pdf_filename: stableComponent?.pdf_filename,
+    pdf_size: stableComponent?.pdf_size || 0
+  });
+
+  // Функция обновления PDF информации
+  const handlePdfUpdate = useCallback((newPdfInfo) => {
+    setPdfInfo(newPdfInfo);
+    // Опционально: обновить компонент через force refresh
+    window.api.database.forceRefreshComponent(stableComponent.id);
+  }, [stableComponent?.id]);
+
 
   // 🎯 ОПТИМИЗИРОВАННЫЕ ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ
   const componentName = useMemo(() => {
@@ -262,7 +284,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
   // 🎯 ОПТИМИЗИРОВАННЫЙ ПАРСИНГ ПАРАМЕТРОВ
   const parameters = useMemo(() => {
     const measurePerf = createPerformanceMeasure('parseParameters');
-    
+
     const getParametersObject = (params) => {
       if (!params) return {};
 
@@ -273,14 +295,14 @@ const ComponentList = ({ category, component, onEdit, version }) => {
       }
 
       let result = {};
-      
+
       try {
         if (typeof params === 'string') {
           result = JSON.parse(params);
         } else if (typeof params === 'object') {
           result = params;
         }
-        
+
         if (process.env.NODE_ENV !== 'production') {
           console.log('✅ Successfully parsed parameters');
         }
@@ -292,7 +314,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
           console.groupEnd();
         }
       }
-      
+
       return result;
     };
 
@@ -310,7 +332,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
       hasDatasheet: !!stableComponent?.datasheet_url,
       componentProvided: !!stableComponent
     };
-    
+
     if (process.env.NODE_ENV !== 'production') {
       console.group('🎯 Render Conditions');
       console.log('📝 Has description:', conditions.hasDescription);
@@ -320,7 +342,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
       console.log('📦 Component provided:', conditions.componentProvided);
       console.groupEnd();
     }
-    
+
     return conditions;
   }, [stableComponent, parameters]);
 
@@ -332,7 +354,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
       console.log('🎯 Category:', stableCategory);
       console.groupEnd();
     }
-    
+
     onEdit?.(stableComponent);
   }, [onEdit, stableComponent, stableCategory]);
 
@@ -429,7 +451,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
         console.log('🌐 Using default window.open');
         window.open(normalizedUrl, '_blank', 'noopener,noreferrer');
       }
-      
+
       console.log('✅ Datasheet opened successfully');
     } catch (error) {
       console.error('❌ Error opening datasheet:', error);
@@ -461,13 +483,13 @@ const ComponentList = ({ category, component, onEdit, version }) => {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') {
       const renderStart = performance.now();
-      
+
       return () => {
         const renderEnd = performance.now();
         const renderTime = renderEnd - renderStart;
-        
+
         console.log(`🎨 ComponentList render time: ${renderTime.toFixed(2)}ms`);
-        
+
         if (renderTime > 50) {
           console.warn(`🐢 Slow render detected: ${renderTime.toFixed(2)}ms`);
         }
@@ -480,7 +502,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
     if (process.env.NODE_ENV !== 'production') {
       console.warn('⚠️ ComponentList: No valid component provided, showing placeholder');
     }
-    
+
     return (
       <div className="component-view">
         <div className="text-center text-muted mt-5">
@@ -491,6 +513,40 @@ const ComponentList = ({ category, component, onEdit, version }) => {
       </div>
     );
   }
+  
+
+
+
+  const handleOpenPdf = useCallback(async (pdfData, filename) => {
+  if (!pdfData) {
+    alert('PDF файл не найден');
+    return;
+  }
+
+  try {
+    console.log('📄 Opening PDF:', filename);
+    
+    // Просто создаем data URL и открываем в существующем браузере
+    const pdfDataUrl = `data:application/pdf;base64,${pdfData}`;
+    
+    if (window.api?.window?.openBrowser) {
+      // Используем уже работающий метод
+      await window.api.window.openBrowser(pdfDataUrl);
+    } else {
+      // Fallback для отладки (просто откроет в новой вкладке браузера)
+      window.open(pdfDataUrl, '_blank');
+    }
+    
+    console.log('✅ PDF opened successfully');
+  } catch (error) {
+    console.error('❌ Error opening PDF:', error);
+    alert('Не удалось открыть PDF файл');
+  }
+}, []);
+
+
+
+
 
   return (
     <div className="component-view">
@@ -523,7 +579,7 @@ const ComponentList = ({ category, component, onEdit, version }) => {
                 <span className="info-value">{stableComponent.storage_cell || '-'}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">Datasheet:</span>
+                <span className="info-label">Ссылка:</span>
                 <span className="info-value">
                   {renderConditions.hasDatasheet ? (
                     <a
@@ -536,6 +592,36 @@ const ComponentList = ({ category, component, onEdit, version }) => {
                   ) : '-'}
                 </span>
               </div>
+
+
+
+              <div className="info-row">
+                <span className="info-label">PDF документ:</span>
+                <span className="info-value">
+                  {stableComponent?.pdf_data ? (
+                    <button
+                      className="btn-open-pdf"
+                      onClick={() => handleOpenPdf(
+                        stableComponent.pdf_data,
+                        stableComponent.pdf_filename
+                      )}
+                      title="Открыть PDF файл"
+                    >
+                      <FaFilePdf />Открыть PDF</button>
+                  ) : '-'}
+                </span>
+              </div>
+
+
+              {/* <div className="pdf-section-container">
+                <ComponentPdfSection
+                  componentId={stableComponent?.id}
+                  pdfInfo={pdfInfo}
+                  onPdfUpdate={handlePdfUpdate}
+                />
+              </div> */}
+
+
               <div className="info-row">
                 <span className="info-label">Количество:</span>
                 <span className="info-value">{stableComponent.quantity || 0}</span>

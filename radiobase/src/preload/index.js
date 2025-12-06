@@ -20,7 +20,14 @@ const api = {
     searchComponents: (query) => ipcRenderer.invoke('database:searchComponents', query),
     getDatabaseStats: () => ipcRenderer.invoke('database:getDatabaseStats'),
     checkIntegrity: () => ipcRenderer.invoke('database:checkIntegrity'),
-    getDbInfo: () => ipcRenderer.invoke('database:getDbInfo')
+    getDbInfo: () => ipcRenderer.invoke('database:getDbInfo'),
+
+    // PDF datasheets
+    uploadComponentPdf: (id, pdfData, filename, size) => 
+    ipcRenderer.invoke('database:uploadComponentPdf', id, pdfData, filename, size),
+    getComponentPdf: (id) => ipcRenderer.invoke('database:getComponentPdf', id),
+    removeComponentPdf: (id) => ipcRenderer.invoke('database:removeComponentPdf', id)
+
   },
 
   window: {

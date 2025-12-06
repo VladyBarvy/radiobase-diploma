@@ -215,39 +215,97 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
   };
 
 
-  const handleSaveComponent = async (componentData) => {
-    try {
-      console.log('💾 Saving component with image:', !!componentData.image_data);
-      const result = await window.api.database.addComponent(componentData);
+
+
+
+
+
+
+
+
+  // const handleSaveComponent = async (componentData) => {
+  //   try {
+  //     console.log('💾 Saving component with image:', !!componentData.image_data);
+  //     const result = await window.api.database.addComponent(componentData);
 
      
 
-      if (result.success) {
-        console.log('✅ Компонент добавлен:', result.id);
+  //     if (result.success) {
+  //       console.log('✅ Компонент добавлен:', result.id);
 
-        // Безопасная проверка: перезагружаем компоненты только если категория выбрана и совпадает
-        if (selectedCategory?.id === componentData.category_id) {
-          await loadComponents(componentData.category_id);
-        }
+  //       // Безопасная проверка: перезагружаем компоненты только если категория выбрана и совпадает
+  //       if (selectedCategory?.id === componentData.category_id) {
+  //         await loadComponents(componentData.category_id);
+  //       }
 
-        // Всегда перезагружаем категории для обновления счетчиков
-        await loadCategories();
+  //       // Всегда перезагружаем категории для обновления счетчиков
+  //       await loadCategories();
 
-        // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ О СОЗДАНИИ НОВОГО КОМПОНЕНТА
-        if (onComponentUpdated && result.id) {
-          const newComponent = await window.api.database.getComponent(result.id);
-          onComponentUpdated(newComponent);
-        }
+  //       // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ О СОЗДАНИИ НОВОГО КОМПОНЕНТА
+  //       if (onComponentUpdated && result.id) {
+  //         const newComponent = await window.api.database.getComponent(result.id);
+  //         onComponentUpdated(newComponent);
+  //       }
 
-      } else {
-        alert(`❌ Ошибка: ${result.error}`);
-        throw new Error(result.error);
+  //     } else {
+  //       alert(`❌ Ошибка: ${result.error}`);
+  //       throw new Error(result.error);
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Ошибка добавления компонента:', error);
+  //     throw error;
+  //   }
+  // };
+
+
+
+  const handleSaveComponent = async (componentData) => {
+  try {
+
+        console.log('💾 DEBUG: Data sent to database:', {
+      fields: Object.keys(componentData),
+      hasPdf: !!componentData.pdf_data,
+      pdfSize: componentData.pdf_size,
+      imageSize: componentData.image_data?.length
+    });
+
+
+    const result = await window.api.database.addComponent(componentData);
+
+
+    console.log('📊 Database response:', result);
+    
+    if (result.success) {
+      console.log('✅ Компонент добавлен:', result.id);
+
+      // Безопасная проверка: перезагружаем компоненты только если категория выбрана и совпадает
+      if (selectedCategory?.id === componentData.category_id) {
+        await loadComponents(componentData.category_id);
       }
-    } catch (error) {
-      console.error('❌ Ошибка добавления компонента:', error);
-      throw error;
+
+      // Всегда перезагружаем категории для обновления счетчиков
+      await loadCategories();
+
+      // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ О СОЗДАНИИ НОВОГО КОМПОНЕНТА
+      if (onComponentUpdated && result.id) {
+        const newComponent = await window.api.database.getComponent(result.id);
+        onComponentUpdated(newComponent);
+      }
+
+    } else {
+      alert(`❌ Ошибка: ${result.error}`);
+      throw new Error(result.error);
     }
-  };
+  } catch (error) {
+    console.error('❌ Ошибка добавления компонента:', error);
+    throw error;
+  }
+};
+
+
+
+
+
 
 
   const handleCategoryClick = (category) => {

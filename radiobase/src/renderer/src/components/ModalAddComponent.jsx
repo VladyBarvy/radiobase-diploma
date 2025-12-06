@@ -3,13 +3,15 @@ import '../styles/ModalAddComponent.css';
 import {
   FaEdit,
   FaSave,
-  FaUpload,        // Стрелка вверх (загрузка)
-  FaDownload,      // Стрелка вниз (скачивание)
-  FaFileUpload,    // Файл со стрелкой вверх
+  FaUpload,         // Стрелка вверх (загрузка)
+  FaDownload,       // Стрелка вниз (скачивание)
+  FaFileUpload,     // Файл со стрелкой вверх
   FaCloudUploadAlt, // Облако со стрелкой вверх
-  FaImage,         // Изображение
-  FaPhotoVideo,    // Фото/видео
-  FaCamera         // Камера
+  FaImage,          // Изображение
+  FaPhotoVideo,     // Фото/видео
+  FaCamera,         // Камера
+  FaFilePdf, // Добавить эту строку
+  FaTrash    // Если используете удаление файла
 } from 'react-icons/fa';
 import { validateForm, validationRules, validateImage } from './validationRules';
 
@@ -40,6 +42,7 @@ const ModalAddComponent = ({
   const [originalData, setOriginalData] = useState(null);
   const [localCategories, setLocalCategories] = useState(categories);
   const [errors, setErrors] = useState({});
+  const [pdfFile, setPdfFile] = useState(null);
 
   // Функция для загрузки категорий
   const loadCategories = async () => {
@@ -408,6 +411,27 @@ const ModalAddComponent = ({
 
 
 
+
+
+
+
+// Функция для конвертации файла в base64
+const convertFileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      // Получаем base64 строку (без префикса data URL)
+      const base64String = e.target.result.split(',')[1];
+      resolve(base64String);
+    };
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
+
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -416,6 +440,18 @@ const ModalAddComponent = ({
       quantityValue: formData.quantity,
       quantityType: typeof formData.quantity
     });
+
+
+    // Конвертация PDF в base64 если есть файл
+    let pdfData = null;
+    let pdfFilename = null;
+    let pdfSize = 0;
+
+    if (pdfFile) {
+      pdfData = await convertFileToBase64(pdfFile);
+      pdfFilename = pdfFile.name;
+      pdfSize = pdfFile.size;
+    }
 
     // Валидация формы
     const validation = validateForm(formData, newParameters);
@@ -455,7 +491,10 @@ const ModalAddComponent = ({
       ...formData,
       parameters,
       updated_at: new Date().toISOString(),
-      image_data: formData.image_data || imagePreview || null
+      image_data: formData.image_data || imagePreview || null,
+      pdf_data: pdfData,
+      pdf_filename: pdfFilename,
+      pdf_size: pdfSize,
     };
 
     // Добавляем ID компонента в режиме редактирования
@@ -611,7 +650,7 @@ const ModalAddComponent = ({
 
             {/* Ссылка на datasheet */}
             <div className="form-section">
-              <h3 className="section-title">Ссылка на datasheet</h3>
+              <h3 className="section-title">Ссылка</h3>
               <div className="form-row">
                 <div className="form-group full-width">
                   <input
@@ -635,6 +674,37 @@ const ModalAddComponent = ({
 
 
 
+
+
+
+            <div className="form-section">
+              <h3 className="section-title">PDF документ</h3>
+              <div className="file-input-wrapper">
+                <input
+                  type="file"
+                  id="component-pdf"
+                  accept=".pdf,application/pdf"
+                  onChange={(e) => setPdfFile(e.target.files[0])}
+                  className="file-input"
+                />
+                <label htmlFor="component-pdf" className="file-input-label">
+                  <FaFilePdf />
+                  {pdfFile ? pdfFile.name : 'Загрузить PDF файл'}
+                </label>
+                {pdfFile && (
+                  <button
+                    type="button"
+                    className="btn-remove-file"
+                    onClick={() => setPdfFile(null)}
+                  >
+                    <FaTrash />
+                  </button>
+                )}
+              </div>
+              <div className="form-hint">
+                Максимальный размер: 10MB
+              </div>
+            </div>
 
 
 

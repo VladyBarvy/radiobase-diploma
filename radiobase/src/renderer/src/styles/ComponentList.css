@@ -580,3 +580,31 @@
   background: #c53030;
   transform: scale(1.05);
 }
+
+
+/* Простая кнопка для PDF */
+.btn-open-pdf {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-open-pdf:hover {
+  background: #c53030;
+  transform: scale(1.05);
+}
+
+.btn-open-pdf::before {
+  content: '📄';
+  font-size: 14px;
+}
+

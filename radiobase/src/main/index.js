@@ -257,6 +257,40 @@ function setupDatabaseHandlers() {
     return result
   })
 
+
+
+
+
+
+  // PDF handlers
+ipcMain.handle('database:uploadComponentPdf', async (_, id, pdfData, filename, size) => {
+  console.log('📄 Uploading PDF for component:', id);
+  const result = await db.updateComponent({
+    id,
+    pdf_data: pdfData,
+    pdf_filename: filename,
+    pdf_size: size,
+    pdf_mime_type: 'application/pdf'
+  });
+  return result;
+});
+
+ipcMain.handle('database:getComponentPdf', async (_, id) => {
+  console.log('📄 Getting PDF for component:', id);
+  return await db.getComponentPdf(id);
+});
+
+ipcMain.handle('database:removeComponentPdf', async (_, id) => {
+  console.log('🗑️ Removing PDF for component:', id);
+  return await db.removeComponentPdf(id);
+});
+
+
+
+
+
+
+
   ipcMain.handle('window:openBrowser', async (_, url) => {
     try {
       console.log('🌐 Opening browser for:', url)
@@ -286,7 +320,7 @@ function setupDatabaseHandlers() {
       });
 
       // Открываем DevTools для отладки
-      browserWindow.webContents.openDevTools();
+      //browserWindow.webContents.openDevTools();
   
       console.log('✅ Browser window opened for:', url);
       return { success: true };

@@ -7,6 +7,7 @@ const api = {
     // Categories
     getCategories: () => ipcRenderer.invoke('database:getCategories'),
     addCategory: (name) => ipcRenderer.invoke('database:addCategory', name),
+    updateCategory: (id, name) => ipcRenderer.invoke('database:updateCategory', id, name),
     deleteCategory: (id) => ipcRenderer.invoke('database:deleteCategory', id),
     
     // Components

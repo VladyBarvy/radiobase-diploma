@@ -18,10 +18,10 @@ export const validationRules = {
   },
   
   datasheet_url: {
-    pattern: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/,
-    patternMessage: 'Введите корректный URL (например: https://example.com)',
-    maxLength: 500
-  },
+  pattern: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-.?%&=]*)?$/,
+  patternMessage: 'Введите корректный URL (например: https://example.com)',
+  maxLength: 500
+},
   
   quantity: {
     min: 0,
@@ -117,25 +117,6 @@ export const validateForm = (formData, parameters = []) => {
     errors
   };
 };
-
-// Дополнительно в validationRules.js
-// export const validateImage = (file) => {
-//   if (!file) return null;
-  
-//   // Максимальный размер 5MB
-//   const maxSize = 5 * 1024 * 1024;
-//   if (file.size > maxSize) {
-//     return 'Размер файла не должен превышать 5MB';
-//   }
-  
-//   // Допустимые форматы
-//   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-//   if (!allowedTypes.includes(file.type)) {
-//     return 'Допустимые форматы: JPG, PNG, GIF, WebP';
-//   }
-  
-//   return null;
-// };
 
 export const validateImage = (file) => {
   if (!file) return null;

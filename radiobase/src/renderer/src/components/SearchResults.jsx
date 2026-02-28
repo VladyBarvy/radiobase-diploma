@@ -83,7 +83,6 @@ const SearchResults = ({ searchResults, searchQuery, onComponentSelect, onEdit }
                   onClick={(e) => handleEditClick(component, e)}
                   title="Редактировать компонент"
                 >
-                  {/* <PencilIcon size={14} color="white" /> */}
                   <FaEdit size={14} />
                   Редактировать
                 </button>

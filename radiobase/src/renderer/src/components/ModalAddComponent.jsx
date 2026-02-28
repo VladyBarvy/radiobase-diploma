@@ -415,32 +415,25 @@ const ModalAddComponent = ({
 
 
 
-// Функция для конвертации файла в base64
-const convertFileToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      // Получаем base64 строку (без префикса data URL)
-      const base64String = e.target.result.split(',')[1];
-      resolve(base64String);
-    };
-    reader.onerror = (error) => reject(error);
-    reader.readAsDataURL(file);
-  });
-};
+  // Функция для конвертации файла в base64
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // Получаем base64 строку (без префикса data URL)
+        const base64String = e.target.result.split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
 
 
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log('🔍 DEBUG: Form data before validation:', {
-      formData, // Что здесь в quantity?
-      quantityValue: formData.quantity,
-      quantityType: typeof formData.quantity
-    });
-
 
     // Конвертация PDF в base64 если есть файл
     let pdfData = null;

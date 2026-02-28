@@ -218,47 +218,6 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
 
 
 
-
-
-
-
-
-  // const handleSaveComponent = async (componentData) => {
-  //   try {
-  //     console.log('💾 Saving component with image:', !!componentData.image_data);
-  //     const result = await window.api.database.addComponent(componentData);
-
-     
-
-  //     if (result.success) {
-  //       console.log('✅ Компонент добавлен:', result.id);
-
-  //       // Безопасная проверка: перезагружаем компоненты только если категория выбрана и совпадает
-  //       if (selectedCategory?.id === componentData.category_id) {
-  //         await loadComponents(componentData.category_id);
-  //       }
-
-  //       // Всегда перезагружаем категории для обновления счетчиков
-  //       await loadCategories();
-
-  //       // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ О СОЗДАНИИ НОВОГО КОМПОНЕНТА
-  //       if (onComponentUpdated && result.id) {
-  //         const newComponent = await window.api.database.getComponent(result.id);
-  //         onComponentUpdated(newComponent);
-  //       }
-
-  //     } else {
-  //       alert(`❌ Ошибка: ${result.error}`);
-  //       throw new Error(result.error);
-  //     }
-  //   } catch (error) {
-  //     console.error('❌ Ошибка добавления компонента:', error);
-  //     throw error;
-  //   }
-  // };
-
-
-
   const handleSaveComponent = async (componentData) => {
   try {
 

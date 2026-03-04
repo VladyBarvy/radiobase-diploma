@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Portable database for electronic components",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "barvv",
+  "homepage": "https://github.com/VladyBarvy/radiobase-diploma/tree/eight",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -76,12 +76,10 @@
       "target": [
         {
           "target": "portable",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
-      "icon": "assets/icon_3.ico"
+      "icon": "resources/icon_3.ico"
     },
     "portable": {
       "artifactName": "RadioBase.exe"

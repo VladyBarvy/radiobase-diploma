@@ -36,3 +36,12 @@ $ npm run build:linux
 
 $ rm -rf out release
 $ npm run build:win:portable
+
+
+# Очистите кэш
+rm -rf release
+rm -rf out
+
+# Пересоберите
+npm run build
+npm run build:win:portable

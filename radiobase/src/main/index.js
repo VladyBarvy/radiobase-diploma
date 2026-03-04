@@ -1,21 +1,74 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
+ import { nativeImage } from 'electron'
 import { join } from 'path'
+import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon_3 from '../../resources/icon_3.png?asset'
 import ComponentsDatabase from './database'
 
-let mainWindow
-let db
+let mainWindow;
+let db;
 
 function createWindow() {
+
+
+
+
+  let icon
+  
+  // Определяем путь и формат иконки в зависимости от платформы
+  if (process.platform === 'win32') {
+    // Для Windows используем .ico
+    const iconPath = join(__dirname, '../../resources/icon_3.ico')
+    
+    // Проверяем существование файла
+    if (fs.existsSync(iconPath)) {
+      icon = nativeImage.createFromPath(iconPath)
+      console.log('📊 ICO file info:', {
+        path: iconPath,
+        size: fs.statSync(iconPath).size,
+        imageSize: icon.getSize(),
+        isEmpty: icon.isEmpty()
+      })
+      
+      // Если иконка всё ещё пустая, пробуем загрузить как PNG и конвертировать
+      if (icon.isEmpty()) {
+        console.log('⚠️ ICO is empty, trying PNG fallback...')
+        const pngPath = join(__dirname, '../../resources/icon_3.png')
+        if (fs.existsSync(pngPath)) {
+          icon = nativeImage.createFromPath(pngPath)
+        }
+      }
+    } else {
+      // Если .ico не найден, используем .png
+      const pngPath = join(__dirname, '../../resources/icon_3.png')
+      if (fs.existsSync(pngPath)) {
+        icon = nativeImage.createFromPath(pngPath)
+      }
+    }
+  } else {
+    // Для Linux/Mac используем .png
+    const pngPath = join(__dirname, '../../resources/icon_3.png')
+    if (fs.existsSync(pngPath)) {
+      icon = nativeImage.createFromPath(pngPath)
+    }
+  }
+
+
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     show: false,
     autoHideMenuBar: true,
-    icon: icon_3, 
-    ...(process.platform === 'linux' ? { icon_3 } : {}),
+
+
+
+icon: icon, // Используем nativeImage
+
+    // icon: icon_3, 
+    // ...(process.platform === 'linux' ? { icon_3 } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -55,14 +108,21 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  // Логирование всех событий
-  // mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-  //   console.log(`📱 Renderer Console [${level}]: ${message}`)
-  // })
 
-    mainWindow.webContents.on('console-message', (event, level, message) => {
+
+  mainWindow.webContents.on('console-message', (event, level, message) => {
     console.log(`📱 Renderer Console [${level}]: ${message}`)
   })
+
+
+
+
+    // Дополнительно устанавливаем иконку после создания окна
+  if (icon && !icon.isEmpty()) {
+    mainWindow.setIcon(icon)
+  }
+
+  
 
   return mainWindow
 }
@@ -71,6 +131,9 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+
+
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -85,7 +148,7 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => console.log('pong'))
 
   console.log('🎯 App is ready, initializing database...')
-  
+
   // Initialize database and setup handlers with small delay
   initializeApp()
 })
@@ -102,12 +165,12 @@ async function initializeApp() {
       appPath: app.getAppPath(),
       isPackaged: app.isPackaged
     });
-    
+
     console.log('🗄️ Starting database initialization...')
-    
+
     // Инициализируем базу данных
     db = new ComponentsDatabase()
-    
+
     // Ждем завершения инициализации БД
     await db.initPromise;
     console.log('✅ Database initialized successfully')
@@ -125,7 +188,7 @@ async function initializeApp() {
 
   } catch (error) {
     console.error('❌ Database initialization failed:', error)
-    
+
     // Показываем подробную информацию об ошибке
     console.error('🔍 Error details:', {
       message: error.message,
@@ -133,10 +196,10 @@ async function initializeApp() {
       code: error.code,
       path: error.path
     })
-    
+
     // Все равно создаем окно, но с ошибкой
     mainWindow = createWindow()
-    
+
     // Отправляем ошибку в renderer process
     mainWindow.webContents.once('did-finish-load', () => {
       mainWindow.webContents.send('database-error', error.message)
@@ -264,27 +327,27 @@ function setupDatabaseHandlers() {
 
 
   // PDF handlers
-ipcMain.handle('database:uploadComponentPdf', async (_, id, pdfData, filename, size) => {
-  console.log('📄 Uploading PDF for component:', id);
-  const result = await db.updateComponent({
-    id,
-    pdf_data: pdfData,
-    pdf_filename: filename,
-    pdf_size: size,
-    pdf_mime_type: 'application/pdf'
+  ipcMain.handle('database:uploadComponentPdf', async (_, id, pdfData, filename, size) => {
+    console.log('📄 Uploading PDF for component:', id);
+    const result = await db.updateComponent({
+      id,
+      pdf_data: pdfData,
+      pdf_filename: filename,
+      pdf_size: size,
+      pdf_mime_type: 'application/pdf'
+    });
+    return result;
   });
-  return result;
-});
 
-ipcMain.handle('database:getComponentPdf', async (_, id) => {
-  console.log('📄 Getting PDF for component:', id);
-  return await db.getComponentPdf(id);
-});
+  ipcMain.handle('database:getComponentPdf', async (_, id) => {
+    console.log('📄 Getting PDF for component:', id);
+    return await db.getComponentPdf(id);
+  });
 
-ipcMain.handle('database:removeComponentPdf', async (_, id) => {
-  console.log('🗑️ Removing PDF for component:', id);
-  return await db.removeComponentPdf(id);
-});
+  ipcMain.handle('database:removeComponentPdf', async (_, id) => {
+    console.log('🗑️ Removing PDF for component:', id);
+    return await db.removeComponentPdf(id);
+  });
 
 
 
@@ -310,10 +373,10 @@ ipcMain.handle('database:removeComponentPdf', async (_, id) => {
         title: 'Datasheet - ' + url,
         icon: icon_3 // используем ту же иконку что и у основного приложения
       });
-  
+
       // Загружаем URL
       await browserWindow.loadURL(url);
-  
+
       // Обработчик для внешних ссылок (открывать в системном браузере)
       browserWindow.webContents.setWindowOpenHandler(({ url }) => {
         require('electron').shell.openExternal(url);
@@ -322,7 +385,7 @@ ipcMain.handle('database:removeComponentPdf', async (_, id) => {
 
       // Открываем DevTools для отладки
       //browserWindow.webContents.openDevTools();
-  
+
       console.log('✅ Browser window opened for:', url);
       return { success: true };
     } catch (error) {
@@ -334,9 +397,9 @@ ipcMain.handle('database:removeComponentPdf', async (_, id) => {
 
 
   ipcMain.handle('database:forceRefreshComponent', async (_, id) => {
-  console.log('🔄 Force refreshing component:', id);
-  return await db.getComponent(id); // Получаем свежие данные из БД
-});
+    console.log('🔄 Force refreshing component:', id);
+    return await db.getComponent(id); // Получаем свежие данные из БД
+  });
 
   // Добавляем хендлер для получения информации о пути БД
   ipcMain.handle('database:getDbInfo', async () => {

@@ -343,15 +343,14 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
             await loadComponents(selectedCategory.id);
           }
 
-          // Сбрасываем выбор компонента через onComponentSelect
-          if (onComponentSelect) {
-            onComponentSelect(null);
-          }
+        if (onComponentSelect) {
+          onComponentSelect(null);
+        }
 
-          // ВЫЗОВ НОВОГО ПРОПСА - УВЕДОМЛЕНИЕ ОБ УДАЛЕНИИ
-          if (onComponentUpdated) {
-            onComponentUpdated(null); // Передаем null, так как компонент удален
-          }
+        if (onComponentUpdated) {
+          onComponentUpdated(null); // Передаем null, так как компонент удален
+        }
+
         } else {
           alert(`❌ Ошибка: ${result.error}`);
         }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import ComponentList from './components/ComponentList';
 import ModalAddComponent from './components/ModalAddComponent';
@@ -81,11 +81,42 @@ function App() {
   };
 
   // Обработчик обновления компонента
-  const handleComponentUpdated = (updatedComponent) => {
-    if (selectedComponent && selectedComponent.id === updatedComponent.id) {
+  // const handleComponentUpdated = (updatedComponent) => {
+  //   if (selectedComponent && selectedComponent.id === updatedComponent.id) {
+  //     setSelectedComponent(updatedComponent);
+  //   }
+  // };
+
+
+
+  const handlePdfUpdate = useCallback(async (componentId, hasPdf) => {
+  try {
+    console.log('📄 PDF update callback:', componentId, hasPdf);
+    
+    // Обновляем компонент в состоянии
+    if (selectedComponent && selectedComponent.id === componentId) {
+      const updatedComponent = await window.api.database.getComponent(componentId);
       setSelectedComponent(updatedComponent);
     }
-  };
+  } catch (error) {
+    console.error('❌ Error handling PDF update:', error);
+  }
+}, [selectedComponent]);
+
+
+  const handleComponentUpdated = (updatedComponent) => {
+  if (updatedComponent && selectedComponent && selectedComponent.id === updatedComponent.id) {
+    setSelectedComponent(updatedComponent);
+  } else if (updatedComponent === null) {
+    // Если компонент удален - сбрасываем выбор
+    setSelectedComponent(null);
+  }
+};
+
+
+
+
+
 
   // Функция для обработки поиска
   const handleSearch = async (query) => {
@@ -146,6 +177,7 @@ function App() {
               component={selectedComponent}
               onEdit={handleEditComponent}
               version={componentVersion}
+              onPdfUpdate={handlePdfUpdate}
             />
           ) : selectedCategory ? (
             <div className="welcome-message">
@@ -179,6 +211,7 @@ function App() {
         categories={getCategories()}
         editMode={true}
         componentData={editingComponent}
+        onPdfUpdate={handlePdfUpdate}
       />
     </div>
   );

@@ -604,7 +604,122 @@
 }
 
 .btn-open-pdf::before {
-  content: '📄';
+  /* content: '📄'; */
   font-size: 14px;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.pdf-section {
+  margin-top: 20px;
+}
+
+.pdf-content {
+  background: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pdf-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pdf-filename {
+  font-weight: 500;
+  color: #2d3748;
+  word-break: break-word;
+  flex: 1;
+}
+
+.pdf-size {
+  color: #718096;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.pdf-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.pdf-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.pdf-btn-view {
+  background: #4299e1;
+  color: white;
+}
+
+.pdf-btn-view:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-btn-edit {
+  background: #48bb78;
+  color: white;
+}
+
+.pdf-btn-edit:hover {
+  background: #38a169;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.pdf-error {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #fed7d7;
+  color: #c53030;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .pdf-actions {
+    flex-direction: column;
+  }
+}

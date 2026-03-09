@@ -1,7 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// Custom APIs for renderer
 const api = {
   database: {
     // Categories
@@ -9,14 +8,20 @@ const api = {
     addCategory: (name) => ipcRenderer.invoke('database:addCategory', name),
     updateCategory: (id, name) => ipcRenderer.invoke('database:updateCategory', id, name),
     deleteCategory: (id) => ipcRenderer.invoke('database:deleteCategory', id),
-    
+
     // Components
     getComponents: (categoryId) => ipcRenderer.invoke('database:getComponents', categoryId),
     getComponent: (id) => ipcRenderer.invoke('database:getComponent', id),
     addComponent: (componentData) => ipcRenderer.invoke('database:addComponent', componentData),
     updateComponent: (componentData) => ipcRenderer.invoke('database:updateComponent', componentData),
     deleteComponent: (id) => ipcRenderer.invoke('database:deleteComponent', id),
-    
+
+
+    uploadComponentPdf: (id, pdfData, filename, size) =>
+      ipcRenderer.invoke('database:uploadComponentPdf', id, pdfData, filename, size),
+    getComponentPdf: (id) => ipcRenderer.invoke('database:getComponentPdf', id),
+    removeComponentPdf: (id) => ipcRenderer.invoke('database:removeComponentPdf', id),
+
     // Search and utilities
     searchComponents: (query) => ipcRenderer.invoke('database:searchComponents', query),
   },
@@ -28,6 +33,7 @@ const api = {
   // Добавляем обработчик ошибок БД
   onDatabaseError: (callback) => ipcRenderer.on('database-error', callback)
 }
+
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

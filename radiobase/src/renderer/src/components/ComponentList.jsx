@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { FaEdit } from 'react-icons/fa';
 import '../styles/ComponentList.css';
-import ComponentPdfSection from './ComponentPdfSection';
+
 import {
   FaFilePdf
 } from 'react-icons/fa';
@@ -222,12 +222,49 @@ const ImageModal = React.memo(({
   );
 });
 
-const ComponentList = ({ category, component, onEdit, version }) => {
+const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) => {
+
+
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfVersion, setPdfVersion] = useState(0);
+
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingComponent, setEditingComponent] = useState(null);
+
+
+  if (!component) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('ℹ️ ComponentList: No component selected');
+    }
+    return (
+      <div className="component-view">
+        <div className="text-center text-muted mt-5">
+          <i className="fas fa-microchip fa-3x mb-3"></i>
+          <h4>Компонент не выбран</h4>
+          <p>Выберите компонент из списка слева</p>
+        </div>
+      </div>
+    );
+  }
+
+
+
+
+
+
   // 🎯 СТАБИЛИЗИРУЕМ ПРОПСЫ
   const stableCategory = useMemo(() => category, [category?.id]);
-  //const stableComponent = useMemo(() => component, [component?.id]);
 
-  const stableComponent = useMemo(() => component, [component, version]);
+
+  const stableComponent = useMemo(() => {
+    // Добавляем pdfVersion в зависимости для обновления при изменении PDF
+    return component;
+  }, [component, version, pdfVersion]);
+
+
 
   // 🎯 ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ОТЛАДКИ
   useRenderDebug('ComponentList', {
@@ -235,25 +272,38 @@ const ComponentList = ({ category, component, onEdit, version }) => {
     component: stableComponent
   });
 
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
+
+
+  const hasPdf = useMemo(() => {
+    return stableComponent?.has_pdf === true;
+  }, [stableComponent?.has_pdf]);
 
 
 
 
-  // Внутри компонента добавить состояние для PDF
-  const [pdfInfo, setPdfInfo] = useState({
-    has_pdf: !!stableComponent?.pdf_data,
-    pdf_filename: stableComponent?.pdf_filename,
-    pdf_size: stableComponent?.pdf_size || 0
-  });
+  // Функция для принудительного обновления компонента после изменения PDF
+  const handlePdfUpdate = useCallback(async (componentId, hasPdf) => {
+    try {
+      console.log('🔄 PDF updated for component:', componentId, 'hasPdf:', hasPdf);
 
-  // Функция обновления PDF информации
-  const handlePdfUpdate = useCallback((newPdfInfo) => {
-    setPdfInfo(newPdfInfo);
-    // Опционально: обновить компонент через force refresh
-    window.api.database.forceRefreshComponent(stableComponent.id);
-  }, [stableComponent?.id]);
+      // Обновляем версию для перерендера
+      setPdfVersion(prev => prev + 1);
+
+      // Запрашиваем свежие данные компонента
+      const updatedComponent = await window.api.database.getComponent(componentId);
+
+      if (updatedComponent && onEdit) {
+        // Обновляем компонент в родительском компоненте
+        onEdit(updatedComponent);
+      }
+    } catch (error) {
+      console.error('❌ Error updating PDF info:', error);
+    }
+  }, [onEdit]);
+
+
+
+
 
 
   // 🎯 ОПТИМИЗИРОВАННЫЕ ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ
@@ -401,6 +451,11 @@ const ComponentList = ({ category, component, onEdit, version }) => {
         setImagePreview(newImagePreview);
         onEdit?.(updatedComponent);
         handleCloseImageModal();
+
+
+        await window.api.database.forceRefreshComponent(stableComponent.id);
+
+
       } else {
         console.error('❌ Failed to update image:', result.error);
         alert('Не удалось обновить изображение');
@@ -513,36 +568,120 @@ const ComponentList = ({ category, component, onEdit, version }) => {
       </div>
     );
   }
-  
 
 
 
-  const handleOpenPdf = useCallback(async (pdfData, filename) => {
-  if (!pdfData) {
-    alert('PDF файл не найден');
-    return;
-  }
-
-  try {
-    console.log('📄 Opening PDF:', filename);
-    
-    // Просто создаем data URL и открываем в существующем браузере
-    const pdfDataUrl = `data:application/pdf;base64,${pdfData}`;
-    
-    if (window.api?.window?.openBrowser) {
-      // Используем уже работающий метод
-      await window.api.window.openBrowser(pdfDataUrl);
-    } else {
-      // Fallback для отладки (просто откроет в новой вкладке браузера)
-      window.open(pdfDataUrl, '_blank');
+  const handleOpenPdf = useCallback(async () => {
+    if (!stableComponent?.id) {
+      alert('ID компонента не найден');
+      return;
     }
-    
-    console.log('✅ PDF opened successfully');
-  } catch (error) {
-    console.error('❌ Error opening PDF:', error);
-    alert('Не удалось открыть PDF файл');
-  }
-}, []);
+
+    setPdfLoading(true);
+
+    try {
+      console.log('📄 Opening PDF for component:', stableComponent.id);
+
+      const result = await window.api.database.getComponentPdf(stableComponent.id);
+
+      if (result?.success && result.data) {
+        // Создаем data URL из base64
+        const pdfDataUrl = `data:application/pdf;base64,${result.data}`;
+
+        // Открываем через openBrowser (как раньше)
+        if (window.api?.window?.openBrowser) {
+          await window.api.window.openBrowser(pdfDataUrl);
+          console.log('✅ PDF opened in Electron window');
+        } else {
+          alert('Функция открытия PDF недоступна');
+        }
+      } else {
+        alert('PDF файл не найден');
+      }
+    } catch (error) {
+      console.error('❌ Error opening PDF:', error);
+      alert('Не удалось открыть PDF файл');
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [stableComponent?.id]);
+
+
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.group('🔍 ComponentList Full State');
+      console.log('📦 Current component:', stableComponent);
+      console.log('🏷️ Current category:', stableCategory);
+      console.log('🖼️ Image modal open:', isImageModalOpen);
+      console.log('🖼️ Image preview exists:', !!imagePreview);
+      console.log('📝 Has description:', renderConditions.hasDescription);
+      console.log('⚙️ Parameter count:', Object.keys(parameters).length);
+      console.log('📄 Has PDF flag:', stableComponent?.has_pdf); // ДОБАВЬТЕ ЭТУ СТРОКУ
+      console.log('📄 PDF file path:', stableComponent?.pdf_file_path); // ДОБАВЬТЕ ЭТУ СТРОКУ
+      console.log('📄 PDF filename:', stableComponent?.pdf_filename); // ДОБАВЬТЕ ЭТУ СТРОКУ
+      console.groupEnd();
+    }
+  }, [stableComponent, stableCategory, isImageModalOpen, imagePreview, renderConditions, parameters]);
+
+
+
+
+  const PdfViewer = ({ component, onEdit }) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const openPdf = async () => {
+      if (!component?.id || !component?.pdf_file_path) {
+        setError('PDF файл не найден');
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      try {
+        // Получаем PDF данные
+        const result = await window.api.database.getComponentPdf(component.id);
+
+        if (result.success) {
+          // Создаем Blob из данных
+          const blob = new Blob([result.data], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+
+          // Открываем в новом окне
+          window.api.window.openBrowser(url);
+        } else {
+          setError('Не удалось загрузить PDF файл');
+        }
+      } catch (error) {
+        console.error('❌ Error opening PDF:', error);
+        setError('Ошибка при открытии PDF');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!component?.pdf_file_path) {
+      return null;
+    }
+
+    return (
+
+      <div >
+        <button
+          className="btn-open-pdf"
+          onClick={openPdf}
+          disabled={loading}
+        >
+          <FaFilePdf size={14} />
+          {loading ? 'Загрузка...' : 'Открыть PDF'}
+        </button>
+        {error && <div className="pdf-error">{error}</div>}
+      </div>
+    );
+  };
+
 
 
 
@@ -595,31 +734,14 @@ const ComponentList = ({ category, component, onEdit, version }) => {
 
 
 
+
               <div className="info-row">
-                <span className="info-label">PDF документ:</span>
-                <span className="info-value">
-                  {stableComponent?.pdf_data ? (
-                    <button
-                      className="btn-open-pdf"
-                      onClick={() => handleOpenPdf(
-                        stableComponent.pdf_data,
-                        stableComponent.pdf_filename
-                      )}
-                      title="Открыть PDF файл"
-                    >
-                      <FaFilePdf />Открыть PDF</button>
-                  ) : '-'}
-                </span>
+                <span className="info-label">PDF-документ:</span>
+                <>
+                  <PdfViewer component={component} />
+                </>
               </div>
 
-
-              {/* <div className="pdf-section-container">
-                <ComponentPdfSection
-                  componentId={stableComponent?.id}
-                  pdfInfo={pdfInfo}
-                  onPdfUpdate={handlePdfUpdate}
-                />
-              </div> */}
 
 
               <div className="info-row">
@@ -686,6 +808,10 @@ const ComponentList = ({ category, component, onEdit, version }) => {
           </div>
         </div>
       </div>
+
+
+
+
 
       {/* Модальное окно для обновления изображения */}
       <ImageModal

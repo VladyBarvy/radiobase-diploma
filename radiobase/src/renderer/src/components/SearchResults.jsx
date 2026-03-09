@@ -20,7 +20,39 @@ const PencilIcon = ({ size = 16, color = 'currentColor', className = '' }) => {
   );
 };
 
+
+
+
 const SearchResults = ({ searchResults, searchQuery, onComponentSelect, onEdit }) => {
+  
+  // Функция для поиска совпадений в параметрах
+  const getParameterMatches = (component, query) => {
+    if (!component.parameters) return null;
+    
+    try {
+      const parameters = typeof component.parameters === 'string'
+        ? JSON.parse(component.parameters)
+        : component.parameters;
+      
+      const matches = [];
+      const queryLower = query.toLowerCase();
+      
+      Object.entries(parameters).forEach(([key, value]) => {
+        const keyMatch = key.toLowerCase().includes(queryLower);
+        const valueMatch = String(value).toLowerCase().includes(queryLower);
+        
+        if (keyMatch || valueMatch) {
+          matches.push({ key, value, keyMatch, valueMatch });
+        }
+      });
+      
+      return matches.length > 0 ? matches : null;
+    } catch (error) {
+      console.error('❌ Error parsing parameters for display:', error);
+      return null;
+    }
+  };
+
   if (!searchResults || searchResults.length === 0) {
     return (
       <div className="search-results">
@@ -59,40 +91,67 @@ const SearchResults = ({ searchResults, searchQuery, onComponentSelect, onEdit }
       </div>
 
       <div className="search-results-list">
-        {searchResults.map((component) => (
-          <div
-            key={component.id}
-            className="search-result-item"
-            onClick={() => handleComponentClick(component)}
-          >
-            <div className="result-item-content">
-              <div className="result-item-main">
-                <h3 className="result-item-name">{component.name}</h3>
-                <p className="result-item-category">{component.category_name}</p>
-                {component.storage_cell && (
-                  <p className="result-item-storage">Ячейка: {component.storage_cell}</p>
-                )}
-                {component.description && (
-                  <p className="result-item-description">{component.description}</p>
-                )}
-              </div>
-              <div className="result-item-meta">
-                <span className="result-item-quantity">Количество: {component.quantity || 0}</span>
-                <button
-                  className="btn-edit-result"
-                  onClick={(e) => handleEditClick(component, e)}
-                  title="Редактировать компонент"
-                >
-                  <FaEdit size={14} />
-                  Редактировать
-                </button>
+        {searchResults.map((component) => {
+          const parameterMatches = getParameterMatches(component, searchQuery);
+          
+          return (
+            <div
+              key={component.id}
+              className="search-result-item"
+              onClick={() => handleComponentClick(component)}
+            >
+              <div className="result-item-content">
+                <div className="result-item-main">
+                  <h3 className="result-item-name">{component.name}</h3>
+                  <p className="result-item-category">{component.category_name}</p>
+                  {component.storage_cell && (
+                    <p className="result-item-storage">Ячейка: {component.storage_cell}</p>
+                  )}
+                  {component.description && (
+                    <p className="result-item-description">{component.description}</p>
+                  )}
+                  
+                  {/* Отображаем найденные параметры */}
+                  {parameterMatches && (
+                    <div className="result-item-parameter-matches">
+                      <p className="parameter-matches-title">Найдено в параметрах:</p>
+                      <ul className="parameter-matches-list">
+                        {parameterMatches.map((match, idx) => (
+                          <li key={idx} className="parameter-match-item">
+                            <span className="parameter-match-key">
+                              {match.keyMatch ? <mark>{match.key}</mark> : match.key}:
+                            </span>
+                            <span className="parameter-match-value">
+                              {match.valueMatch ? <mark>{match.value}</mark> : match.value}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <div className="result-item-meta">
+                  <span className="result-item-quantity">
+                    Количество: {component.quantity || 0}
+                  </span>
+                  <button
+                    className="btn-edit-result"
+                    onClick={(e) => handleEditClick(component, e)}
+                    title="Редактировать компонент"
+                  >
+                    <FaEdit size={14} />
+                    Редактировать
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 };
+
+
 
 export default SearchResults;

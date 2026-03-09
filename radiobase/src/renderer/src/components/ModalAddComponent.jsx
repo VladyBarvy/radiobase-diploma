@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import '../styles/ModalAddComponent.css';
+
 import {
   FaEdit,
   FaSave,
@@ -22,7 +23,8 @@ const ModalAddComponent = ({
   categories = [],
   selectedCategory = null,
   editMode = false,
-  componentData: initialComponentData = null
+  componentData: initialComponentData = null,
+  onPdfUpdate
 }) => {
   const [formData, setFormData] = useState({
     category_id: '',
@@ -42,7 +44,42 @@ const ModalAddComponent = ({
   const [originalData, setOriginalData] = useState(null);
   const [localCategories, setLocalCategories] = useState(categories);
   const [errors, setErrors] = useState({});
+  // const [pdfFile, setPdfFile] = useState(null);
+  // const [pdfVersion, setPdfVersion] = useState(0);
   const [pdfFile, setPdfFile] = useState(null);
+
+
+
+
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Валидация
+    if (file.type !== 'application/pdf') {
+      setErrors(prev => ({ ...prev, pdf: 'Пожалуйста, выберите PDF файл' }));
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      setErrors(prev => ({ ...prev, pdf: 'Размер файла не должен превышать 10MB' }));
+      return;
+    }
+
+    // Очищаем ошибку
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors['pdf'];
+      return newErrors;
+    });
+
+    // Устанавливаем файл в состояние (он будет обработан при submit)
+    setPdfFile(file);
+    console.log('📄 PDF file selected:', file.name, file.size);
+  };
+
+
+
 
   // Функция для загрузки категорий
   const loadCategories = async () => {
@@ -168,12 +205,7 @@ const ModalAddComponent = ({
     }
   }, [hasUnsavedChanges, hasChanges, onClose]);
 
-  // Обработчик клика по оверлею
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      handleCloseWithConfirmation();
-    }
-  };
+
 
   // Обработчик нажатия ESC
   useEffect(() => {
@@ -297,9 +329,6 @@ const ModalAddComponent = ({
 
 
 
-
-
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -344,9 +373,6 @@ const ModalAddComponent = ({
 
 
 
-
-
-
   // Функция для получения сообщения об ошибке
   const getFieldError = (fieldName) => {
     return errors[fieldName];
@@ -356,22 +382,6 @@ const ModalAddComponent = ({
   const hasError = (fieldName) => {
     return !!errors[fieldName];
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -410,11 +420,6 @@ const ModalAddComponent = ({
 
 
 
-
-
-
-
-
   // Функция для конвертации файла в base64
   const convertFileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -431,6 +436,19 @@ const ModalAddComponent = ({
 
 
 
+  const convertFileToArrayBuffer = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target.result); // ArrayBuffer
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsArrayBuffer(file); // Читаем как ArrayBuffer
+    });
+  };
+
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -441,10 +459,11 @@ const ModalAddComponent = ({
     let pdfSize = 0;
 
     if (pdfFile) {
-      pdfData = await convertFileToBase64(pdfFile);
+      pdfData = await convertFileToArrayBuffer(pdfFile); // ← Изменено здесь
       pdfFilename = pdfFile.name;
       pdfSize = pdfFile.size;
     }
+
 
     // Валидация формы
     const validation = validateForm(formData, newParameters);
@@ -501,10 +520,28 @@ const ModalAddComponent = ({
       type: typeof componentData.quantity
     });
 
+    // Добавляем ID компонента в режиме редактирования
+    if (editMode && initialComponentData) {
+      componentData.id = initialComponentData.id;
+    }
+
     try {
-      await onSave(componentData);
+      const result = await onSave(componentData);
       console.log('✅ Save successful');
+
+      // УВЕДОМЛЯЕМ ОБ ИЗМЕНЕНИИ PDF
+      if (onPdfUpdate && componentData.id) {
+        // Если есть PDF файл, вызываем колбэк
+        if (pdfFile) {
+          onPdfUpdate(componentData.id, true);
+        } else if (editMode && !pdfFile && formData.pdf_filename) {
+          // Если PDF был удален
+          onPdfUpdate(componentData.id, false);
+        }
+      }
+
       setHasUnsavedChanges(false);
+      setPdfFile(null); // Очищаем выбранный файл
       onClose();
     } catch (error) {
       console.error('Ошибка при сохранении компонента:', error);
@@ -515,20 +552,16 @@ const ModalAddComponent = ({
 
 
 
-
-
-
-
-
-
   const handleCancel = () => {
     handleCloseWithConfirmation();
   };
 
   if (!isOpen) return null;
 
+
+
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
+    <div className="modal-overlay">
       <div className="modal-content modal-add-component" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">
@@ -635,12 +668,6 @@ const ModalAddComponent = ({
 
 
 
-
-
-
-
-
-
             {/* Ссылка на datasheet */}
             <div className="form-section">
               <h3 className="section-title">Ссылка</h3>
@@ -667,41 +694,65 @@ const ModalAddComponent = ({
 
 
 
-
-
-
+            {/* PDF Datasheet */}
             <div className="form-section">
-              <h3 className="section-title">PDF документ</h3>
-              <div className="file-input-wrapper">
+              <h3 className="section-title">PDF Datasheet</h3>
+
+              {hasError('pdf') && (
+                <div className="form-error-message mb-2">{getFieldError('pdf')}</div>
+              )}
+
+              <div className="file-input-wrapper" >
                 <input
                   type="file"
                   id="component-pdf"
                   accept=".pdf,application/pdf"
-                  onChange={(e) => setPdfFile(e.target.files[0])}
+                  onChange={handlePdfUpload}
                   className="file-input"
                 />
-                <label htmlFor="component-pdf" className="file-input-label">
-                  <FaFilePdf />
-                  {pdfFile ? pdfFile.name : 'Загрузить PDF файл'}
-                </label>
-                {pdfFile && (
-                  <button
-                    type="button"
-                    className="btn-remove-file"
-                    onClick={() => setPdfFile(null)}
-                  >
-                    <FaTrash />
-                  </button>
+
+                {!pdfFile && !formData.pdf_filename ? (
+                  <label htmlFor="component-pdf" className="file-input-label">
+                    <FaFileUpload size={14} />
+                    Загрузить PDF
+                  </label>
+                ) : (
+                  <div className="pdf-info-container">
+                    <div className="pdf-info">
+                      <FaFilePdf size={20} color="#e53e3e" />
+                      <span className="pdf-filename">
+                        {pdfFile ? pdfFile.name : formData.pdf_filename}
+                      </span>
+                      <span className="pdf-size">
+                        ({(pdfFile ? pdfFile.size : formData.pdf_size) / 1024} KB)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="pdf-remove-btn"
+                      onClick={() => {
+                        setPdfFile(null);
+                        if (editMode && formData.pdf_filename) {
+                          // Если в режиме редактирования, нужно будет удалить PDF при сохранении
+                          setFormData(prev => ({
+                            ...prev,
+                            pdf_filename: null,
+                            pdf_size: 0
+                          }));
+                        }
+                      }}
+                      title="Удалить PDF"
+                    >
+                      <FaTrash size={14} />
+                    </button>
+                  </div>
                 )}
               </div>
+
               <div className="form-hint">
                 Максимальный размер: 10MB
               </div>
             </div>
-
-
-
-
 
 
             {/* Количество */}
@@ -912,22 +963,7 @@ const ModalAddComponent = ({
               )}
             </div>
 
-
-
-
-
-
-
-
-
             <div className="divider"></div>
-
-
-
-
-
-
-
 
 
             {/* Изображение компонента */}
@@ -992,20 +1028,7 @@ const ModalAddComponent = ({
                 </div>
               </div>
             </div>
-
-
-
-
           </div>
-
-
-
-
-
-
-
-
-
 
           <div className="modal-footer">
             <button

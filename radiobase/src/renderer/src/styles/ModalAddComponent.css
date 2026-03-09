@@ -688,3 +688,31 @@
 .file-input-label.pdf:hover {
   background: #c53030;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* Стили для PDF секции */
+.pdf-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdf-info-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}

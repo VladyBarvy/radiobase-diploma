@@ -59,8 +59,6 @@ function App() {
           console.log('🔄 Updated component data:', updatedComponent);
           console.log('🔄 Previous component data:', selectedComponent);
 
-          //setSelectedComponent(updatedComponent);
-          //setSelectedComponent(componentData);
         }
 
         return { success: true };
@@ -79,13 +77,6 @@ function App() {
     setIsEditModalOpen(false);
     setEditingComponent(null);
   };
-
-  // Обработчик обновления компонента
-  // const handleComponentUpdated = (updatedComponent) => {
-  //   if (selectedComponent && selectedComponent.id === updatedComponent.id) {
-  //     setSelectedComponent(updatedComponent);
-  //   }
-  // };
 
 
 

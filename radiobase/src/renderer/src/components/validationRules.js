@@ -17,12 +17,6 @@ export const validationRules = {
     patternMessage: 'Только буквы, цифры, пробелы и дефисы'
   },
 
-  //   datasheet_url: {
-  //   pattern: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-.?%&=]*)?$/,
-  //   patternMessage: 'Введите корректный URL (например: https://example.com)',
-  //   maxLength: 500
-  // },
-
   datasheet_url: {
     pattern: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/,
     patternMessage: 'Введите корректный URL (например: https://example.com)',

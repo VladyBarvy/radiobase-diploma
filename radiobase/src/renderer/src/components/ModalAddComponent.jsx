@@ -16,6 +16,20 @@ import {
 } from 'react-icons/fa';
 import { validateForm, validationRules, validateImage } from './validationRules';
 
+
+// Функция для проверки, похожа ли строка на JSON
+const looksLikeJsonString = (str) => {
+  if (!str || typeof str !== 'string') return false;
+  const trimmed = str.trim();
+  return (
+    trimmed.startsWith('{') || 
+    trimmed.startsWith('[') || 
+    /^[0-9"truefalsenull]/.test(trimmed)
+  );
+};
+
+
+
 const ModalAddComponent = ({
   isOpen,
   onClose,
@@ -126,6 +140,14 @@ const ModalAddComponent = ({
         // Восстанавливаем исходную строку из символов
         const reconstructedString = keys.map(key => parameters[key]).join('');
         console.log('🔍 Reconstructed string:', reconstructedString);
+
+
+        // Проверка, что строка похожа на JSON
+        if (!looksLikeJsonString(reconstructedString)) {
+          console.error('❌ Reconstructed string does not look like JSON:', reconstructedString);
+          return [{ key: '', value: '' }];
+        }
+
 
         try {
           // Пытаемся распарсить восстановленную строку

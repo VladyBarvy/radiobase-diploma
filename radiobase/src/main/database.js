@@ -4,6 +4,7 @@ const path = require('path');
 const { app } = require('electron');
 import { insertDemoComponent } from './utils/demoData.js';
 import { searchComponents } from './utils/searchFunc.js';
+import { dbUtils } from './utils/miniUtils.js';
 
 import {
   savePdfToFile,
@@ -276,6 +277,17 @@ class ComponentsDatabase {
     };
   }
 
+
+
+
+
+
+
+
+
+
+
+  
   // ===== API КОМПОНЕНТОВ =====
   async getComponentPdfPath(componentId) {
     try {
@@ -343,8 +355,7 @@ class ComponentsDatabase {
     // Проверяем наличие PDF файла
     if (component) {
       component.has_pdf = !!component.pdf_file_path && pdfFileExists(component.pdf_file_path);
-      component.pdf_exists = component.has_pdf; // Добавляем для удобства
-      // Убираем поле pdf_data из ответа, так как мы больше не храним его в БД
+      component.pdf_exists = component.has_pdf;
       delete component.pdf_data;
 
       console.log('📄 PDF file info for component', id, {
@@ -439,17 +450,9 @@ class ComponentsDatabase {
         return { success: false, error: "PDF not found" };
       }
 
-      // if (!fs.existsSync(component.pdf_file_path)) {
-      //   return { success: false, error: "PDF file does not exist on disk" };
-      // }
-
       if (!pdfFileExists(component.pdf_file_path)) {
         return { success: false, error: "PDF file does not exist on disk" };
       }
-
-
-
-      //const data = fs.readFileSync(component.pdf_file_path);
 
       const result = getPdfFile(component.pdf_file_path);
       if (result.success) {
@@ -583,124 +586,47 @@ class ComponentsDatabase {
     };
   }
 
+
+
+
   // ===== ПОИСК =====
   searchComponents(query) {
     return searchComponents(this, query);
   }
 
+
   // ===== УТИЛИТЫ =====
 
   serializeParameters(parameters) {
-    if (!parameters) return '{}';
-    if (typeof parameters === 'string') {
-      try {
-        JSON.parse(parameters);
-        return parameters;
-      } catch {
-        return '{}';
-      }
-    }
-    return JSON.stringify(parameters);
+    return dbUtils.serializeParameters(parameters);
   }
 
   getDatabaseStats() {
-    const categoryCount = this.get("SELECT COUNT(*) as count FROM categories")?.count || 0;
-    const componentCount = this.get("SELECT COUNT(*) as count FROM components")?.count || 0;
-    const totalQuantity = this.get("SELECT SUM(quantity) as total FROM components")?.total || 0;
-
-    return {
-      categoryCount,
-      componentCount,
-      totalQuantity,
-      dbPath: this.dbPath,
-      lastUpdated: new Date().toISOString()
-    };
+    return dbUtils.getDatabaseStats(this);
   }
-
 
   checkTableStructure() {
-    try {
-      const tableInfo = this.all("PRAGMA table_info(components)");
-      console.log('📊 Table structure:', tableInfo);
-
-      // Проверяем наличие PDF полей
-      const hasPdfData = tableInfo.some(col => col.name === 'pdf_data');
-      const hasPdfFilename = tableInfo.some(col => col.name === 'pdf_filename');
-      const hasPdfSize = tableInfo.some(col => col.name === 'pdf_size');
-
-      console.log('🔍 PDF columns check:', {
-        hasPdfData,
-        hasPdfFilename,
-        hasPdfSize,
-        allColumns: tableInfo.map(col => col.name)
-      });
-
-      return { hasPdfData, hasPdfFilename, hasPdfSize };
-    } catch (error) {
-      console.error('❌ Error checking table structure:', error);
-      return { error: error.message };
-    }
+    return dbUtils.checkTableStructure(this);
   }
-
-
-
 
   checkDatabaseIntegrity() {
-    try {
-      const integrityCheck = this.all("PRAGMA integrity_check");
-      const tables = this.all("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name");
-      const componentCount = this.get("SELECT COUNT(*) as c FROM components")?.c || 0;
-
-      console.log("✅ Database integrity:", integrityCheck);
-      console.log("📊 Database contains tables:", tables.map(t => t.name));
-      console.log("🔧 Total components:", componentCount);
-
-      return {
-        success: true,
-        integrity: integrityCheck,
-        tables: tables.map(t => t.name),
-        componentCount
-      };
-    } catch (error) {
-      console.error("❌ Database integrity error:", error);
-      return { success: false, error: error.message };
-    }
+    return dbUtils.checkDatabaseIntegrity(this);
   }
 
-
-  // ===== ОПТИМИЗАЦИЯ И ЗАКРЫТИЕ =====
-
   optimize() {
-    try {
-      this.db.exec('PRAGMA optimize');
-      this.saveToFile();
-      console.log('✅ Database optimized');
-    } catch (error) {
-      console.error('❌ Database optimization error:', error);
-    }
+    dbUtils.optimize(this);
   }
 
   backup() {
-    try {
-      const backupPath = this.dbPath + '.backup_' + Date.now();
-      const data = this.db.export();
-      const buffer = Buffer.from(data);
-      fs.writeFileSync(backupPath, buffer);
-      console.log('✅ Database backup created:', backupPath);
-      return backupPath;
-    } catch (error) {
-      console.error('❌ Database backup error:', error);
-      return null;
-    }
+    return dbUtils.backup(this);
   }
 
   close() {
-    if (this.db) {
-      this.optimize();
-      this.db.close();
-      console.log('✅ Database closed');
-    }
+    dbUtils.close(this);
   }
+
+
+
 }
 
 export default ComponentsDatabase;

@@ -453,8 +453,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
         handleCloseImageModal();
 
 
-        await window.api.database.forceRefreshComponent(stableComponent.id);
-
+   
 
       } else {
         console.error('❌ Failed to update image:', result.error);

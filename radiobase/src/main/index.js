@@ -106,8 +106,6 @@ function openUserGuide() {
 
 
 function createWindow() {
-
-
   let icon;
 
   // Определяем путь и формат иконки в зависимости от платформы
@@ -148,21 +146,12 @@ function createWindow() {
     }
   }
 
-
-
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     show: false,
-    // autoHideMenuBar: true,
-
-
-
-    icon: icon, // Используем nativeImage
-
-    // icon: icon_3, 
-    // ...(process.platform === 'linux' ? { icon_3 } : {}),
+    icon: icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -194,57 +183,35 @@ function createWindow() {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-
-
   mainWindow.webContents.on('console-message', (event, level, message) => {
     console.log(`📱 Renderer Console [${level}]: ${message}`)
   })
-
-
-
 
   // Дополнительно устанавливаем иконку после создания окна
   if (icon && !icon.isEmpty()) {
     mainWindow.setIcon(icon)
   }
 
-
-
   return mainWindow
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  electronApp.setAppUserModelId('com.electron'); // Set app user model id for windows
 
-
-
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
-
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
-
-  console.log('🎯 App is ready, initializing database...')
-
-  // Initialize database and setup handlers with small delay
-  initializeApp()
+  initializeApp();
 })
 
 // Функция для инициализации приложения
@@ -260,25 +227,13 @@ async function initializeApp() {
       isPackaged: app.isPackaged
     });
 
-    console.log('🗄️ Starting database initialization...')
+    db = new ComponentsDatabase(); // Инициализируем базу данных
+    await db.initPromise; // Ждем завершения инициализации БД
+    setupDatabaseHandlers(); // Настраиваем обработчики IPC
 
-    // Инициализируем базу данных
-    db = new ComponentsDatabase()
-
-    // Ждем завершения инициализации БД
-    await db.initPromise;
-    console.log('✅ Database initialized successfully')
-
-    // Настраиваем обработчики IPC
-    setupDatabaseHandlers()
-    console.log('✅ Database IPC handlers registered')
-
-    // Создаем окно после инициализации БД
-    mainWindow = createWindow()
+    mainWindow = createWindow();
     createMenu(mainWindow);
 
-
-    // Логируем путь к БД
     const stats = await db.getDatabaseStats()
     console.log('📊 Database stats:', stats)
 
@@ -293,20 +248,13 @@ async function initializeApp() {
       path: error.path
     })
 
-    // Все равно создаем окно, но с ошибкой
     mainWindow = createWindow();
-
-
-    // Отправляем ошибку в renderer process
     mainWindow.webContents.once('did-finish-load', () => {
       mainWindow.webContents.send('database-error', error.message)
     })
   }
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -315,10 +263,8 @@ app.on('window-all-closed', () => {
 
 // Close database when app quits
 app.on('before-quit', () => {
-  console.log('🛑 App is quitting, closing database...')
   if (db) {
     db.close()
-    console.log('✅ Database closed')
   }
 })
 
@@ -329,102 +275,74 @@ function setupDatabaseHandlers() {
     return
   }
 
-  console.log('🔧 Setting up database IPC handlers...')
-
   // Categories
   ipcMain.handle('database:getCategories', async () => {
-    console.log('📂 Getting categories...')
     const result = await db.getCategories()
-    console.log(`📂 Found ${result.length} categories`)
     return result
   })
 
   ipcMain.handle('database:addCategory', async (_, name) => {
-    console.log('➕ Adding category:', name)
     const result = await db.addCategory(name)
-    console.log('➕ Category add result:', result)
     return result
   })
 
   ipcMain.handle('database:deleteCategory', async (_, id) => {
-    console.log('🗑️ Deleting category:', id)
     const result = await db.deleteCategory(id)
-    console.log('🗑️ Category delete result:', result)
     return result
   })
 
   // Components
   ipcMain.handle('database:getComponents', async (_, categoryId) => {
-    console.log('🔧 Getting components for category:', categoryId)
     const result = await db.getComponents(categoryId)
-    console.log(`🔧 Found ${result.length} components`)
     return result
   })
 
   ipcMain.handle('database:getComponent', async (_, id) => {
-    console.log('🔍 Getting component:', id)
     const result = await db.getComponent(id)
-    console.log('🔍 Component result:', result ? 'found' : 'not found')
     return result
   })
 
   ipcMain.handle('database:addComponent', async (_, componentData) => {
-    console.log('➕ Adding component:', componentData.name)
     const result = await db.addComponent(componentData)
-    console.log('➕ Component add result:', result)
     return result
   })
 
   ipcMain.handle('database:updateComponent', async (_, componentData) => {
-    console.log('✏️ Updating component:', componentData.id)
     const result = await db.updateComponent(componentData)
-    console.log('✏️ Component update result:', result)
     return result
   })
 
   ipcMain.handle('database:deleteComponent', async (_, id) => {
-    console.log('🗑️ Deleting component:', id)
     const result = await db.deleteComponent(id)
-    console.log('🗑️ Component delete result:', result)
     return result
   })
 
   // Search and utilities
   ipcMain.handle('database:searchComponents', async (_, query) => {
-    console.log('🔍 Searching components:', query)
     const result = await db.searchComponents(query)
-    console.log(`🔍 Found ${result.length} results`)
     return result
   })
 
   ipcMain.handle('database:getDatabaseStats', async () => {
-    console.log('📊 Getting database stats...')
     const result = await db.getDatabaseStats()
-    console.log('📊 Database stats:', result)
     return result
   })
 
   ipcMain.handle('database:checkIntegrity', async () => {
-    console.log('🔍 Checking database integrity...')
     const result = await db.checkDatabaseIntegrity()
-    console.log('🔍 Integrity check result:', result)
     return result
   })
 
   ipcMain.handle('database:updateCategory', async (_, id, name) => {
-    console.log('✏️ Updating category:', id, name)
+
     const result = await db.updateCategory(id, name)
-    console.log('✏️ Category update result:', result)
     return result
   })
 
 
 
   ipcMain.handle('database:uploadComponentPdf', async (_, id, pdfData, filename, size) => {
-    console.log('📄 Uploading PDF for component:', id);
-
-    // Получаем компонент, чтобы узнать текущий путь к файлу
-    const component = await db.getComponent(id);
+    const component = await db.getComponent(id); // Получаем компонент, чтобы узнать текущий путь к файлу
 
     // Если есть старый PDF файл, удаляем его
     if (component && component.pdf_file_path) {
@@ -452,18 +370,15 @@ function setupDatabaseHandlers() {
 
 
   ipcMain.handle('database:getComponentPdf', async (_, id) => {
-    console.log('📄 Getting PDF for component:', id);
     return await db.getComponentPdf(id);
   });
 
   ipcMain.handle('database:removeComponentPdf', async (_, id) => {
-    console.log('🗑️ Removing PDF for component:', id);
     return await db.removeComponentPdf(id);
   });
 
   ipcMain.handle('window:openBrowser', async (_, url) => {
     try {
-      console.log('🌐 Opening browser for:', url)
       // Создаем новое браузерное окно
       const browserWindow = new BrowserWindow({
         width: 1200,
@@ -492,7 +407,6 @@ function setupDatabaseHandlers() {
       // Открываем DevTools для отладки
       //browserWindow.webContents.openDevTools();
 
-      console.log('✅ Browser window opened for:', url);
       return { success: true };
     } catch (error) {
       console.error('❌ Failed to open browser window:', error);
@@ -503,7 +417,6 @@ function setupDatabaseHandlers() {
 
 
   ipcMain.handle('database:forceRefreshComponent', async (_, id) => {
-    console.log('🔄 Force refreshing component:', id);
     return await db.getComponent(id); // Получаем свежие данные из БД
   });
 
@@ -523,9 +436,7 @@ function setupDatabaseHandlers() {
 
   ipcMain.handle('db:get-component-pdf', async (event, componentId) => {
     try {
-      console.log('📄 IPC: Getting PDF for component:', componentId);
       const result = await db.getComponentPdfPath(componentId);
-      console.log('📄 IPC: PDF result:', result);
       return result;
     } catch (error) {
       console.error('IPC Error getting PDF:', error);
@@ -535,8 +446,6 @@ function setupDatabaseHandlers() {
 
   ipcMain.handle('shell:openPath', async (_, path) => {
     try {
-      console.log('📂 Opening path with shell:', path);
-
       // Проверяем существование файла
       if (!fs.existsSync(path)) {
         console.error('❌ File does not exist:', path);
@@ -546,14 +455,12 @@ function setupDatabaseHandlers() {
       // Проверяем права доступа
       try {
         fs.accessSync(path, fs.constants.R_OK);
-        console.log('✅ File is readable');
       } catch (err) {
         console.error('❌ File is not readable:', err.message);
         return { success: false, error: 'File is not readable' };
       }
 
       const result = await shell.openPath(path);
-      console.log('📂 Shell openPath result:', result);
 
       if (result === '') {
         return { success: true, error: '' };
@@ -588,7 +495,7 @@ function setupDatabaseHandlers() {
         }
       });
 
-      // Загружаем через data URL (как раньше!)
+      // Загружаем через data URL
       await pdfWindow.loadURL(dataUrl);
 
       return { success: true };
@@ -603,14 +510,11 @@ function setupDatabaseHandlers() {
 }
 
 app.on('activate', function () {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     mainWindow = createWindow()
   }
 })
 
-// Логируем все необработанные ошибки
 process.on('uncaughtException', (error) => {
   console.error('💥 Uncaught Exception:', error)
 })

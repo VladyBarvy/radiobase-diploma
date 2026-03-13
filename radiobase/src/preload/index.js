@@ -22,7 +22,7 @@ const api = {
     getComponentPdf: (id) => ipcRenderer.invoke('database:getComponentPdf', id),
     removeComponentPdf: (id) => ipcRenderer.invoke('database:removeComponentPdf', id),
 
-    // Search and utilities
+    // Поиск
     searchComponents: (query) => ipcRenderer.invoke('database:searchComponents', query),
   },
 
@@ -34,10 +34,6 @@ const api = {
   onDatabaseError: (callback) => ipcRenderer.on('database-error', callback)
 }
 
-
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)

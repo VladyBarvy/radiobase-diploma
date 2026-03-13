@@ -5,19 +5,15 @@ const { app } = require('electron');
 import { insertDemoComponent } from './utils/demoData.js';
 import { searchComponents } from './utils/searchFunc.js';
 import { dbUtils } from './utils/miniUtils.js';
-
-import {
-  savePdfToFile,
-  removePdfFile,
-  getPdfFile,
-  pdfFileExists
-} from './utils/pdfFunc.js';
-
+import ComponentFunctions from './utils/componentFunc.js';
+import CategoryFunctions from './utils/categoryFunc.js';
 
 class ComponentsDatabase {
   constructor() {
     this.db = null;
     this.dbPath = null;
+    this.components = null;
+    this.categories = null;
     this.initPromise = this.initialize();
   }
 
@@ -82,6 +78,12 @@ class ComponentsDatabase {
 
 
       this.checkTableStructure();
+
+      // Инициализируем методы работы с категориями
+      this.categories = new CategoryFunctions(this);
+
+      // Инициализируем методы работы с компонентами
+      this.components = new ComponentFunctions(this);
 
       console.log('✅ Database initialized successfully');
       return true;
@@ -227,366 +229,57 @@ class ComponentsDatabase {
     }
   }
 
-  // ===== API КАТЕГОРИЙ =====
 
+  // ===== МЕТОДЫ ДЛЯ КАТЕГОРИЙ =====
   getCategories() {
-    return this.all("SELECT * FROM categories ORDER BY name");
+    return this.categories.getCategories();
   }
 
   addCategory(name) {
-    if (!name || !name.trim()) {
-      return { success: false, error: "Название категории не может быть пустым" };
-    }
-
-    const result = this.run("INSERT INTO categories (name) VALUES (?)", [name.trim()]);
-
-    if (result.success && result.changes > 0) {
-      return { success: true, id: result.lastInsertRowid };
-    }
-
-    return {
-      success: false,
-      error: result.error?.includes('UNIQUE')
-        ? "Категория с таким названием уже существует"
-        : "Ошибка добавления категории"
-    };
+    return this.categories.addCategory(name);
   }
 
   updateCategory(id, name) {
-    if (!name || !name.trim()) {
-      return { success: false, error: "Название категории не может быть пустым" };
-    }
-
-    const result = this.run("UPDATE categories SET name = ? WHERE id = ?", [name.trim(), id]);
-
-    if (result.success && result.changes > 0) {
-      return { success: true };
-    }
-
-    return {
-      success: false,
-      error: result.changes === 0 ? "Категория не найдена" : "Ошибка обновления категории"
-    };
+    return this.categories.updateCategory(id, name);
   }
 
   deleteCategory(id) {
-    const result = this.run("DELETE FROM categories WHERE id = ?", [id]);
-    return {
-      success: result.success && result.changes > 0,
-      error: result.success && result.changes === 0 ? "Категория не найдена" : null
-    };
+    return this.categories.deleteCategory(id);
   }
 
 
-
-
-
-
-
-
-
-
-
-  
-  // ===== API КОМПОНЕНТОВ =====
-  async getComponentPdfPath(componentId) {
-    try {
-      const component = await this.getComponent(componentId);
-
-      if (component && component.pdf_file_path) {
-        const pdfPath = path.join(this.datasheetsDir, component.pdf_file_path);
-
-        if (pdfFileExists(pdfPath)) {
-          // Читаем файл и возвращаем base64
-          const pdfBuffer = fs.readFileSync(pdfPath);
-          const base64PDF = pdfBuffer.toString('base64');
-
-          return {
-            success: true,
-            data: base64PDF, // Возвращаем base64 данные
-            fileName: component.pdf_filename || path.basename(component.pdf_file_path)
-          };
-        } else {
-          console.warn(`⚠️ PDF file not found on disk: ${pdfPath}`);
-        }
-      }
-      return { success: false, error: 'PDF not found' };
-    } catch (error) {
-      console.error('Error getting PDF path:', error);
-      return { success: false, error: error.message };
-    }
+  // ===== МЕТОДЫ ДЛЯ КОМПОНЕНТОВ =====
+  getComponentPdfPath(componentId) {
+    return this.components.getComponentPdfPath(componentId);
   }
-
-
-
-
 
   getComponents(categoryId = null) {
-    if (categoryId) {
-      return this.all(
-        "SELECT c.*, cat.name as category_name FROM components c LEFT JOIN categories cat ON c.category_id = cat.id WHERE c.category_id = ? ORDER BY c.name",
-        [categoryId]
-      );
-    }
-    return this.all("SELECT c.*, cat.name as category_name FROM components c LEFT JOIN categories cat ON c.category_id = cat.id ORDER BY c.name");
+    return this.components.getComponents(categoryId);
   }
-
-
 
   getComponent(id) {
-    const component = this.get(`
-    SELECT c.*, cat.name as category_name 
-    FROM components c 
-    LEFT JOIN categories cat ON c.category_id = cat.id 
-    WHERE c.id = ?
-  `, [id]);
-
-    if (component && component.parameters && typeof component.parameters === 'string') {
-      try {
-        component.parameters = JSON.parse(component.parameters);
-      } catch (error) {
-        console.error('❌ JSON parse error:', error);
-        component.parameters = {};
-      }
-    } else if (component) {
-      component.parameters = component.parameters || {};
-    }
-
-    // Проверяем наличие PDF файла
-    if (component) {
-      component.has_pdf = !!component.pdf_file_path && pdfFileExists(component.pdf_file_path);
-      component.pdf_exists = component.has_pdf;
-      delete component.pdf_data;
-
-      console.log('📄 PDF file info for component', id, {
-        filePath: component.pdf_file_path,
-        exists: component.has_pdf,
-        filename: component.pdf_filename
-      });
-    }
-
-    console.log('✅ Final component object:', component);
-    return component;
+    return this.components.getComponent(id);
   }
-
-
 
   addComponent(componentData) {
-    if (!componentData.category_id || !componentData.name?.trim()) {
-      return { success: false, error: "Категория и название компонента обязательны" };
-    }
-
-    console.log('📝 Database: addComponent called with data:', {
-      hasPdf: !!componentData.pdf_data,
-      pdfFilename: componentData.pdf_filename,
-      pdfSize: componentData.pdf_size,
-      allFields: Object.keys(componentData)
-    });
-
-    // Сначала создаем запись в БД без PDF данных
-    const result = this.run(`
-    INSERT INTO components 
-    (category_id, name, storage_cell, datasheet_url, quantity, updated_at, 
-     parameters, image_data, description, 
-     pdf_filename, pdf_size, pdf_mime_type)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
-      componentData.category_id,
-      componentData.name.trim(),
-      componentData.storage_cell?.trim() || null,
-      componentData.datasheet_url?.trim() || null,
-      Math.max(0, parseInt(componentData.quantity) || 0),
-      componentData.updated_at || new Date().toISOString(),
-      this.serializeParameters(componentData.parameters),
-      componentData.image_data || null,
-      componentData.description?.trim() || null,
-      componentData.pdf_filename || null,
-      componentData.pdf_size || 0,
-      componentData.pdf_mime_type || 'application/pdf'
-    ]);
-
-    console.log('📊 Database: addComponent result:', result);
-
-    // Если есть PDF данные и компонент успешно добавлен - сохраняем файл
-    if (result.success && result.changes > 0 && componentData.pdf_data) {
-      const lastId = result.lastInsertRowid;
-      const saveResult = savePdfToFile(
-        componentData.pdf_data,
-        componentData.pdf_filename || `component_${lastId}.pdf`,
-        lastId,
-        this.datasheetsDir
-      );
-
-      if (saveResult.success) {
-        // Обновляем запись с путем к файлу
-        this.run(
-          "UPDATE components SET pdf_file_path = ? WHERE id = ?",
-          [saveResult.filePath, lastId]
-        );
-        console.log('📄 PDF дополнительно сохранен в файл:', saveResult.filePath);
-      }
-    }
-
-    if (result.success && result.changes > 0) {
-      return { success: true, id: result.lastInsertRowid };
-    }
-
-    if (result.error) {
-      console.error('❌ Database SQL error:', result.error);
-    }
-
-    return {
-      success: false,
-      error: result.error || "Ошибка добавления компонента"
-    };
+    return this.components.addComponent(componentData);
   }
-
 
   getComponentPdf(id) {
-    try {
-      const component = this.get("SELECT pdf_file_path, pdf_filename FROM components WHERE id = ?", [id]);
-
-      if (!component || !component.pdf_file_path) {
-        return { success: false, error: "PDF not found" };
-      }
-
-      if (!pdfFileExists(component.pdf_file_path)) {
-        return { success: false, error: "PDF file does not exist on disk" };
-      }
-
-      const result = getPdfFile(component.pdf_file_path);
-      if (result.success) {
-        return {
-          success: true,
-          data: result.data,
-          filename: component.pdf_filename,
-          filePath: component.pdf_file_path
-        };
-      }
-      return result;
-
-
-    } catch (error) {
-      console.error('❌ Error getting component PDF:', error);
-      return { success: false, error: error.message };
-    }
+    return this.components.getComponentPdf(id);
   }
-
-
 
   removeComponentPdf(id) {
-    // Сначала получаем информацию о файле для удаления из папки
-    const component = this.get("SELECT pdf_file_path FROM components WHERE id = ?", [id]);
-
-    if (component && component.pdf_file_path) {
-      removePdfFile(component.pdf_file_path);
-    }
-
-    return this.run(`
-    UPDATE components 
-    SET pdf_filename = NULL, pdf_size = 0, pdf_file_path = NULL 
-    WHERE id = ?`,
-      [id]
-    );
+    return this.components.removeComponentPdf(id);
   }
-
 
   updateComponent(componentData) {
-    if (!componentData.id) {
-      return { success: false, error: "ID компонента обязателен для обновления" };
-    }
-
-    // Получаем текущую информацию о компоненте, чтобы знать старый путь к PDF
-    const currentComponent = this.getComponent(componentData.id);
-
-    // Убедитесь, что parameters - это объект перед сериализацией
-    let parametersString = '{}';
-    if (componentData.parameters) {
-      if (typeof componentData.parameters === 'string') {
-        try {
-          JSON.parse(componentData.parameters);
-          parametersString = componentData.parameters;
-        } catch {
-          parametersString = '{}';
-        }
-      } else if (typeof componentData.parameters === 'object') {
-        parametersString = JSON.stringify(componentData.parameters);
-      }
-    }
-
-    // Если пришли новые PDF данные, удаляем старый файл
-    if (componentData.pdf_data && currentComponent?.pdf_file_path) {
-      removePdfFile(currentComponent.pdf_file_path);
-    }
-
-    const result = this.run(`
-    UPDATE components 
-    SET category_id = ?, name = ?, storage_cell = ?, datasheet_url = ?, 
-        quantity = ?, updated_at = ?, parameters = ?, image_data = ?, 
-        description = ?, pdf_filename = ?, pdf_size = ?, 
-        pdf_mime_type = ?
-    WHERE id = ?
-  `, [
-      componentData.category_id,
-      componentData.name,
-      componentData.storage_cell,
-      componentData.datasheet_url,
-      componentData.quantity,
-      new Date().toISOString(),
-      parametersString,
-      componentData.image_data,
-      componentData.description,
-      componentData.pdf_filename || null,
-      componentData.pdf_size || 0,
-      componentData.pdf_mime_type || 'application/pdf',
-      componentData.id
-    ]);
-
-    // Если в обновлении есть новые PDF данные - сохраняем файл
-    if (result.success && result.changes > 0 && componentData.pdf_data) {
-      const saveResult = savePdfToFile(
-        componentData.pdf_data,
-        componentData.pdf_filename || `component_${componentData.id}.pdf`,
-        componentData.id,
-        this.datasheetsDir
-      );
-
-      if (saveResult.success) {
-        this.run(
-          "UPDATE components SET pdf_file_path = ? WHERE id = ?",
-          [saveResult.filePath, componentData.id]
-        );
-        console.log('📄 PDF обновлен в файле:', saveResult.filePath);
-      }
-    }
-
-    return {
-      success: result.success,
-      changes: result.changes,
-      error: result.success && result.changes === 0 ? "Компонент не найден" : null
-    };
+    return this.components.updateComponent(componentData);
   }
-
-
-
-
 
   deleteComponent(id) {
-    // Сначала удаляем PDF файл если есть
-    const component = this.get("SELECT pdf_file_path FROM components WHERE id = ?", [id]);
-
-    if (component && component.pdf_file_path) {
-      removePdfFile(component.pdf_file_path);
-    }
-
-    const result = this.run("DELETE FROM components WHERE id = ?", [id]);
-    return {
-      success: result.success && result.changes > 0,
-      error: result.success && result.changes === 0 ? "Компонент не найден" : null
-    };
+    return this.components.deleteComponent(id);
   }
-
-
 
 
   // ===== ПОИСК =====
@@ -596,7 +289,6 @@ class ComponentsDatabase {
 
 
   // ===== УТИЛИТЫ =====
-
   serializeParameters(parameters) {
     return dbUtils.serializeParameters(parameters);
   }
@@ -624,7 +316,6 @@ class ComponentsDatabase {
   close() {
     dbUtils.close(this);
   }
-
 
 
 }

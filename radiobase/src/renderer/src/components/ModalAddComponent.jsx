@@ -17,17 +17,18 @@ import {
 import { validateForm, validationRules, validateImage } from './validationRules';
 
 
-// Функция для проверки, похожа ли строка на JSON
-const looksLikeJsonString = (str) => {
-  if (!str || typeof str !== 'string') return false;
-  const trimmed = str.trim();
-  return (
-    trimmed.startsWith('{') || 
-    trimmed.startsWith('[') || 
-    /^[0-9"truefalsenull]/.test(trimmed)
-  );
-};
-
+import {
+  handlePdfUpload as handlePdfUploadUtil,
+  loadCategories as loadCategoriesUtil,
+  getCurrentDateTime as getCurrentDateTimeUtil,
+  parseParameters as parseParametersUtil,
+  hasChanges as hasChangesUtil,
+  handleCloseWithConfirmation as handleCloseWithConfirmationUtil,
+  getFieldError as getFieldErrorUtil,
+  hasError as hasErrorUtil,
+  handleFieldChange as handleFieldChangeUtil,
+  convertFileToArrayBuffer as convertFileToArrayBufferUtil
+} from '../utils/ModalAddCompFunc';
 
 
 const ModalAddComponent = ({
@@ -58,417 +59,7 @@ const ModalAddComponent = ({
   const [originalData, setOriginalData] = useState(null);
   const [localCategories, setLocalCategories] = useState(categories);
   const [errors, setErrors] = useState({});
-  // const [pdfFile, setPdfFile] = useState(null);
-  // const [pdfVersion, setPdfVersion] = useState(0);
   const [pdfFile, setPdfFile] = useState(null);
-
-
-
-
-  const handlePdfUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Валидация
-    if (file.type !== 'application/pdf') {
-      setErrors(prev => ({ ...prev, pdf: 'Пожалуйста, выберите PDF файл' }));
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) { // 10MB
-      setErrors(prev => ({ ...prev, pdf: 'Размер файла не должен превышать 10MB' }));
-      return;
-    }
-
-    // Очищаем ошибку
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors['pdf'];
-      return newErrors;
-    });
-
-    // Устанавливаем файл в состояние (он будет обработан при submit)
-    setPdfFile(file);
-    console.log('📄 PDF file selected:', file.name, file.size);
-  };
-
-
-
-
-  // Функция для загрузки категорий
-  const loadCategories = async () => {
-    try {
-      const categoriesData = await window.api.database.getCategories();
-      setLocalCategories(categoriesData);
-    } catch (error) {
-      console.error('❌ Ошибка загрузки категорий:', error);
-    }
-  };
-
-  // Функция для получения текущей даты и времени в нужном формате
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    return now.toLocaleString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Функция для корректного парсинга параметров
-  const parseParameters = (parameters) => {
-    if (!parameters) return [];
-
-    console.log('🔍 Parsing parameters:', parameters);
-    console.log('🔍 Parameters type:', typeof parameters);
-
-    // Если parameters уже массив, возвращаем его
-    if (Array.isArray(parameters)) {
-      return parameters;
-    }
-
-    // Если parameters - объект с числовыми ключами (0,1,2...) - это разобранная строка
-    if (typeof parameters === 'object' && parameters !== null) {
-      const keys = Object.keys(parameters);
-
-      // Проверяем, являются ли ключи числовыми (разобранная строка)
-      if (keys.length > 0 && keys.every(key => !isNaN(key))) {
-        console.log('⚠️ Parameters appear to be a parsed string, trying to reconstruct...');
-
-        // Восстанавливаем исходную строку из символов
-        const reconstructedString = keys.map(key => parameters[key]).join('');
-        console.log('🔍 Reconstructed string:', reconstructedString);
-
-
-        // Проверка, что строка похожа на JSON
-        if (!looksLikeJsonString(reconstructedString)) {
-          console.error('❌ Reconstructed string does not look like JSON:', reconstructedString);
-          return [{ key: '', value: '' }];
-        }
-
-
-        try {
-          // Пытаемся распарсить восстановленную строку
-          const parsed = JSON.parse(reconstructedString);
-          console.log('✅ Successfully parsed reconstructed parameters:', parsed);
-
-          // Преобразуем в массив для формы
-          return Object.entries(parsed).map(([key, value]) => ({
-            key,
-            value: String(value)
-          }));
-        } catch (error) {
-          console.error('❌ Failed to parse reconstructed string:', error);
-          return [{ key: '', value: '' }];
-        }
-      }
-
-      // Если это нормальный объект с строковыми ключами
-      console.log('✅ Normal parameters object:', parameters);
-      return Object.entries(parameters).map(([key, value]) => ({
-        key,
-        value: String(value)
-      }));
-    }
-
-    // Если parameters - строка, пытаемся распарсить
-    if (typeof parameters === 'string') {
-      try {
-        const parsed = JSON.parse(parameters);
-        return Object.entries(parsed).map(([key, value]) => ({
-          key,
-          value: String(value)
-        }));
-      } catch (error) {
-        console.error('❌ Failed to parse parameters string:', error);
-        return [{ key: '', value: '' }];
-      }
-    }
-
-    return [{ key: '', value: '' }];
-  };
-
-  // Функция для проверки наличия несохраненных изменений
-  const hasChanges = useCallback(() => {
-    if (!editMode || !originalData) return false;
-
-    const currentData = {
-      ...formData,
-      parameters: Object.fromEntries(
-        newParameters
-          .filter(param => param.key.trim() && param.value.trim())
-          .map(param => [param.key.trim(), param.value.trim()])
-      ),
-      image_data: imagePreview
-    };
-
-    return JSON.stringify(currentData) !== JSON.stringify(originalData);
-  }, [formData, newParameters, imagePreview, editMode, originalData]);
-
-  // Обработчик закрытия модального окна с подтверждением
-  const handleCloseWithConfirmation = useCallback(() => {
-    if (hasUnsavedChanges && hasChanges()) {
-      const shouldSave = window.confirm(
-        'У вас есть несохраненные изменения. Хотите сохранить перед закрытием?'
-      );
-
-      if (shouldSave) {
-        // Сохраняем изменения
-        handleSubmit(new Event('submit'));
-      } else {
-        // Закрываем без сохранения
-        onClose();
-      }
-    } else {
-      // Нет изменений, просто закрываем
-      onClose();
-    }
-  }, [hasUnsavedChanges, hasChanges, onClose]);
-
-
-
-  // Обработчик нажатия ESC
-  useEffect(() => {
-    const handleEscKey = (e) => {
-      if (e.keyCode === 27 && isOpen) {
-        handleCloseWithConfirmation();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscKey);
-      return () => {
-        document.removeEventListener('keydown', handleEscKey);
-      };
-    }
-  }, [isOpen, handleCloseWithConfirmation]);
-
-  // Обновляем время каждую секунду
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentDateTime(getCurrentDateTime());
-      const interval = setInterval(() => {
-        setCurrentDateTime(getCurrentDateTime());
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isOpen]);
-
-  // Сбрасываем форму при открытии/закрытии
-  useEffect(() => {
-    if (isOpen) {
-
-      loadCategories();
-
-      if (editMode && initialComponentData) {
-        console.log('📝 Edit mode - initial data:', initialComponentData);
-
-        // Сохраняем оригинальные данные для сравнения
-        const original = {
-          category_id: initialComponentData.category_id || '',
-          name: initialComponentData.name || '',
-          storage_cell: initialComponentData.storage_cell || '',
-          datasheet_url: initialComponentData.datasheet_url || '',
-          quantity: initialComponentData.quantity || 0,
-          parameters: initialComponentData.parameters || {},
-          description: initialComponentData.description || '',
-          image_data: initialComponentData.image_data || null
-        };
-        setOriginalData(original);
-
-        setFormData({
-          category_id: initialComponentData.category_id || '',
-          name: initialComponentData.name || '',
-          storage_cell: initialComponentData.storage_cell || '',
-          datasheet_url: initialComponentData.datasheet_url || '',
-          quantity: initialComponentData.quantity || 0,
-          parameters: initialComponentData.parameters || {},
-          description: initialComponentData.description || ''
-        });
-
-        // Используем функцию корректного парсинга параметров
-        const parametersArray = parseParameters(initialComponentData.parameters);
-        console.log('✅ Parsed parameters for form:', parametersArray);
-
-        setNewParameters(parametersArray.length > 0 ? parametersArray : [{ key: '', value: '' }]);
-        setImagePreview(initialComponentData.image_data || null);
-        setHasUnsavedChanges(false);
-      } else {
-        // Режим добавления - сбрасываем форму
-        const initialCategoryId = selectedCategory?.id || (categories[0]?.id || '');
-
-        setFormData({
-          category_id: initialCategoryId,
-          name: '',
-          storage_cell: '',
-          datasheet_url: '',
-          quantity: 0,
-          parameters: {},
-          description: ''
-        });
-
-        setNewParameters([{ key: '', value: '' }]);
-        setImageFile(null);
-        setImagePreview(null);
-        setOriginalData(null);
-        setHasUnsavedChanges(false);
-      }
-    }
-  }, [isOpen, selectedCategory, categories, editMode, initialComponentData]);
-
-  // Отслеживаем изменения в форме
-  useEffect(() => {
-    if (isOpen && editMode) {
-      const changesExist = hasChanges();
-      setHasUnsavedChanges(changesExist);
-    }
-  }, [formData, newParameters, imagePreview, isOpen, editMode, hasChanges]);
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleParameterChange = (index, field, value) => {
-    const updated = [...newParameters];
-    updated[index][field] = value;
-    setNewParameters(updated);
-  };
-
-  const addParameterField = () => {
-    setNewParameters(prev => [...prev, { key: '', value: '' }]);
-  };
-
-  const removeParameterField = (index) => {
-    if (newParameters.length > 1) {
-      setNewParameters(prev => prev.filter((_, i) => i !== index));
-    }
-  };
-
-
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      console.log('📁 Image file selected:', file.name, file.size);
-
-      // Валидация изображения
-      const imageError = validateImage(file);
-      if (imageError) {
-        console.error('❌ Image validation error:', imageError);
-        setErrors(prev => ({ ...prev, image: imageError }));
-        return;
-      }
-
-      // Очищаем ошибку
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors['image'];
-        return newErrors;
-      });
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageData = e.target.result;
-        console.log('🖼️ Image loaded, size:', imageData.length);
-        setImagePreview(imageData);
-
-        // КРИТИЧЕСКО ВАЖНО: Сохраняем изображение в formData
-        setFormData(prev => ({
-          ...prev,
-          image_data: imageData
-        }));
-      };
-
-      reader.onerror = (error) => {
-        console.error('❌ Error reading image file:', error);
-        setErrors(prev => ({ ...prev, image: 'Ошибка чтения файла' }));
-      };
-
-      reader.readAsDataURL(file);
-    }
-  };
-
-
-
-  // Функция для получения сообщения об ошибке
-  const getFieldError = (fieldName) => {
-    return errors[fieldName];
-  };
-
-  // Функция для проверки есть ли ошибка
-  const hasError = (fieldName) => {
-    return !!errors[fieldName];
-  };
-
-
-
-  const handleFieldChange = (field, value) => {
-    console.log(`🔄 Field change: ${field} =`, value, `(type: ${typeof value})`);
-
-    // Обрабатываем quantity отдельно
-    if (field === 'quantity') {
-      // Убедимся, что это число
-      const numValue = typeof value === 'string' && value.trim() === ''
-        ? 0
-        : Number(value) || 0;
-
-      console.log(`🔢 Processed quantity: ${value} -> ${numValue}`);
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: numValue
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-
-    // Сбрасываем ошибку при изменении поля
-    if (errors[field]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
-
-
-
-  // Функция для конвертации файла в base64
-  const convertFileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        // Получаем base64 строку (без префикса data URL)
-        const base64String = e.target.result.split(',')[1];
-        resolve(base64String);
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
-
-
-
-  const convertFileToArrayBuffer = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        resolve(e.target.result); // ArrayBuffer
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsArrayBuffer(file); // Читаем как ArrayBuffer
-    });
-  };
-
 
 
 
@@ -571,6 +162,218 @@ const ModalAddComponent = ({
       alert('Не удалось сохранить компонент');
     }
   };
+
+
+
+
+
+
+
+
+
+
+  const handlePdfUpload = useCallback((e) => {
+    handlePdfUploadUtil(e, setPdfFile, setErrors);
+  }, []);
+
+  const loadCategories = useCallback(async () => {
+    await loadCategoriesUtil(setLocalCategories);
+  }, []);
+
+  const getCurrentDateTime = useCallback(() => {
+    return getCurrentDateTimeUtil();
+  }, []);
+
+  const parseParameters = useCallback((parameters) => {
+    return parseParametersUtil(parameters);
+  }, []);
+
+  const hasChangesCallback = useCallback(() => {
+    return hasChangesUtil(formData, newParameters, imagePreview, editMode, originalData);
+  }, [formData, newParameters, imagePreview, editMode, originalData]);
+
+  const handleCloseWithConfirmation = useCallback(() => {
+    handleCloseWithConfirmationUtil(
+      hasUnsavedChanges,
+      hasChangesCallback,
+      handleSubmit,
+      onClose
+    );
+  }, [hasUnsavedChanges, hasChangesCallback, handleSubmit, onClose]);
+
+  const getFieldError = useCallback((fieldName) => {
+    return getFieldErrorUtil(errors, fieldName);
+  }, [errors]);
+
+  const hasError = useCallback((fieldName) => {
+    return hasErrorUtil(errors, fieldName);
+  }, [errors]);
+
+  const handleFieldChange = useCallback((field, value) => {
+    handleFieldChangeUtil(field, value, setFormData, setErrors, errors);
+  }, [errors]);
+
+  const convertFileToArrayBuffer = useCallback((file) => {
+    return convertFileToArrayBufferUtil(file);
+  }, []);
+
+
+
+  // Обновляем время каждую секунду
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentDateTime(getCurrentDateTime());
+      const interval = setInterval(() => {
+        setCurrentDateTime(getCurrentDateTime());
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen]);
+
+
+
+  // Сбрасываем форму при открытии/закрытии
+  useEffect(() => {
+    if (isOpen) {
+
+      loadCategories();
+
+      if (editMode && initialComponentData) {
+        console.log('📝 Edit mode - initial data:', initialComponentData);
+
+
+
+        console.log('📝 Edit mode - initial data:', initialComponentData);
+
+        // Получаем свежие данные из БД перед открытием
+        const fetchFreshData = async () => {
+          try {
+            const freshData = await window.api.database.getComponent(initialComponentData.id);
+            if (freshData) {
+              // Используем свежие данные
+              const original = {
+                category_id: freshData.category_id || '',
+                name: freshData.name || '',
+                storage_cell: freshData.storage_cell || '',
+                datasheet_url: freshData.datasheet_url || '',
+                quantity: freshData.quantity || 0,
+                parameters: freshData.parameters || {},
+                description: freshData.description || '',
+                image_data: freshData.image_data || null
+              };
+              setOriginalData(original);
+
+              setFormData({
+                category_id: freshData.category_id || '',
+                name: freshData.name || '',
+                storage_cell: freshData.storage_cell || '',
+                datasheet_url: freshData.datasheet_url || '',
+                quantity: freshData.quantity || 0,
+                parameters: freshData.parameters || {},
+                description: freshData.description || ''
+              });
+
+              const parametersArray = parseParameters(freshData.parameters);
+              setNewParameters(parametersArray.length > 0 ? parametersArray : [{ key: '', value: '' }]);
+              setImagePreview(freshData.image_data || null);
+              setHasUnsavedChanges(false);
+            }
+          } catch (error) {
+            console.error('❌ Error fetching fresh component data:', error);
+
+            const original = {
+              category_id: initialComponentData.category_id || '',
+              name: initialComponentData.name || '',
+              storage_cell: initialComponentData.storage_cell || '',
+              datasheet_url: initialComponentData.datasheet_url || '',
+              quantity: initialComponentData.quantity || 0,
+              parameters: initialComponentData.parameters || {},
+              description: initialComponentData.description || '',
+              image_data: initialComponentData.image_data || null
+            };
+            setOriginalData(original);
+
+            setFormData({
+              category_id: initialComponentData.category_id || '',
+              name: initialComponentData.name || '',
+              storage_cell: initialComponentData.storage_cell || '',
+              datasheet_url: initialComponentData.datasheet_url || '',
+              quantity: initialComponentData.quantity || 0,
+              parameters: initialComponentData.parameters || {},
+              description: initialComponentData.description || ''
+            });
+
+            // Используем функцию корректного парсинга параметров
+            const parametersArray = parseParameters(initialComponentData.parameters);
+            console.log('✅ Parsed parameters for form:', parametersArray);
+
+            setNewParameters(parametersArray.length > 0 ? parametersArray : [{ key: '', value: '' }]);
+            setImagePreview(initialComponentData.image_data || null);
+            setHasUnsavedChanges(false);
+
+
+          }
+        };
+
+        fetchFreshData();
+
+      } else {
+        // Режим добавления - сбрасываем форму
+        const initialCategoryId = selectedCategory?.id || (categories[0]?.id || '');
+
+        setFormData({
+          category_id: initialCategoryId,
+          name: '',
+          storage_cell: '',
+          datasheet_url: '',
+          quantity: 0,
+          parameters: {},
+          description: ''
+        });
+
+        setNewParameters([{ key: '', value: '' }]);
+        setImageFile(null);
+        setImagePreview(null);
+        setOriginalData(null);
+        setHasUnsavedChanges(false);
+      }
+    }
+  }, [isOpen, selectedCategory, categories, editMode, initialComponentData]);
+
+
+
+
+  // Отслеживаем изменения в форме
+  useEffect(() => {
+    if (isOpen && editMode) {
+      const changesExist = hasChangesCallback();
+      setHasUnsavedChanges(changesExist);
+    }
+  }, [formData, newParameters, imagePreview, isOpen, editMode, hasChangesCallback]);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleParameterChange = (index, field, value) => {
+    const updated = [...newParameters];
+    updated[index][field] = value;
+    setNewParameters(updated);
+  };
+
+  const addParameterField = () => {
+    setNewParameters(prev => [...prev, { key: '', value: '' }]);
+  };
+
+  const removeParameterField = (index) => {
+    if (newParameters.length > 1) {
+      setNewParameters(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
 
 
 

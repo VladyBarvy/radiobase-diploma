@@ -18,7 +18,7 @@ __Проект размещён в директории radiobase настоящ
 # Загрузка дистрибутива
 Актуальные версии приложения можно скачать из облачного хранилища:
 
-Windows 10/11 (x64): __[RadioBase v.090326](https://disk.yandex.ru/d/8kMHeAgOgcaymQ)__
+Windows 10/11 (x64): __[RadioBase v.090326](https://disk.yandex.ru/d/oqk9JVUrLW0IJg)__
 
 ***
 
@@ -40,9 +40,9 @@ git clone git@github.com:VladyBarvy/radiobase-diploma.git
 ```
 cd radiobase-diploma/radiobase
 ```
-- перейти на ветку nine
+- перейти на ветку eleven
 ```
-git checkout nine
+git checkout eleven
 ```
 - установить зависимости
 ```

@@ -1,4 +1,3 @@
-// utils/miniUtils.js
 import fs from 'fs';
 
 export const dbUtils = {

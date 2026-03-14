@@ -1,5 +1,3 @@
-// main/utils/categoryFunc.js
-
 class CategoryFunctions {
   constructor(database) {
     this.dbInstance = database;

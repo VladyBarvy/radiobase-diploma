@@ -1,4 +1,3 @@
-// main/utils/componentFunc.js
 import fs from 'fs';
 import path from 'path';
 import {
@@ -7,7 +6,7 @@ import {
   getPdfFile,
   pdfFileExists
 } from './pdfFunc.js';
-//import { dbUtils } from './miniUtils.js';
+
 
 class ComponentFunctions {
   constructor(database) {
@@ -249,6 +248,9 @@ class ComponentFunctions {
       componentData.id
     ]);
 
+    // Сохраняем изменения в файл на диск
+    this.dbInstance.saveToFile();
+
     if (result.success && result.changes > 0 && componentData.pdf_data) {
       const saveResult = savePdfToFile(
         componentData.pdf_data,
@@ -262,6 +264,9 @@ class ComponentFunctions {
           "UPDATE components SET pdf_file_path = ? WHERE id = ?",
           [saveResult.filePath, componentData.id]
         );
+
+        this.dbInstance.saveToFile();
+
         console.log('📄 PDF обновлен в файле:', saveResult.filePath);
       }
     }

@@ -14,7 +14,7 @@ import addCategoryIcon from '../assets/picto-dir-plus.jpg';
 import addComponentIcon from '../assets/picto-comp-plus.jpg';
 import pictoComponentIcon from '../assets/picto-elem.jpg';
 
-const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComponentUpdated, onSearch }) => {
+const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComponentUpdated, onSearch, selectedComponent }) => {
   const [expandedCategories, setExpandedCategories] = useState({});
   const [categories, setCategories] = useState([]);
   const [components, setComponents] = useState({});
@@ -343,9 +343,16 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
             await loadComponents(selectedCategory.id);
           }
 
-          if (onComponentSelect) {
-            onComponentSelect(null);
+          console.log('🗑️ Удаляем компонент:', deleteConfirmation.component.id);
+          console.log('📌 Текущий выбранный компонент:', selectedComponent?.id);
+
+          if (deleteConfirmation.component.id === selectedComponent?.id) {
+            if (onComponentSelect) {
+              onComponentSelect(null); // Сообщаем App, что компонент больше не выбран
+            }
           }
+
+
 
           if (onComponentUpdated) {
             onComponentUpdated(null); // Передаем null, так как компонент удален
@@ -370,14 +377,21 @@ const Sidebar = ({ selectedCategory, onCategorySelect, onComponentSelect, onComp
       if (result.success) {
         console.log('✅ Component updated');
 
+        // Получаем свежие данные из БД
+        const updatedComponent = await window.api.database.getComponent(componentData.id);
+
         // ТОЛЬКО ОДИН вызов для обновления
         if (onComponentUpdated) {
           // Просто уведомляем, что компонент обновлен
           onComponentUpdated({ id: componentData.id });
         }
 
-        // Не вызываем onComponentSelect - пусть App сам решает
-        return { success: true };
+        // Обновляем компонент в состоянии сайдбара
+        if (selectedCategory) {
+          await loadComponents(selectedCategory.id);
+        }
+
+        return { success: true, data: updatedComponent };
       }
     } catch (error) {
       console.error('❌ Error updating component:', error);

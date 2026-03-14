@@ -1,236 +1,26 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { FaEdit } from 'react-icons/fa';
 import '../styles/ComponentList.css';
+import ImageModal from '../utils/ImageModal';
+
+import {
+  useRenderDebug,
+  createPerformanceMeasure,
+  formatDateOptimized,
+  ParametersTable
+} from '../utils/CompListUtils';
 
 import {
   FaFilePdf
 } from 'react-icons/fa';
 
-// 🎯 ХУКИ ДЛЯ ОТЛАДКИ
-const useRenderDebug = (componentName, props) => {
-  const renderCount = useRef(0);
-  const prevProps = useRef({});
-
-  useEffect(() => {
-    renderCount.current += 1;
-
-    if (process.env.NODE_ENV !== 'production') {
-      console.group(`🔄 ${componentName} Render #${renderCount.current}`);
-      console.log('📅 Timestamp:', new Date().toLocaleTimeString());
-
-      const changedProps = Object.keys(props).filter(key =>
-        props[key] !== prevProps.current[key]
-      );
-
-      if (changedProps.length > 0) {
-        console.log('📊 Changed props:', changedProps);
-        changedProps.forEach(prop => {
-          console.log(`   ${prop}:`, {
-            from: prevProps.current[prop],
-            to: props[prop]
-          });
-        });
-      } else {
-        console.log('✅ No props changed (likely internal state update)');
-      }
-
-      console.groupEnd();
-    }
-
-    prevProps.current = { ...props };
-  });
-};
-
-// 🎯 УТИЛИТА ДЛЯ ЗАМЕРА ПРОИЗВОДИТЕЛЬНОСТИ
-const createPerformanceMeasure = (operationName) => {
-  const startTime = performance.now();
-
-  return () => {
-    const endTime = performance.now();
-    const duration = endTime - startTime;
-
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`⏱️ ${operationName}: ${duration.toFixed(2)}ms`);
-
-      if (duration > 16) {
-        console.warn(`🐢 Slow operation detected: ${operationName}`);
-      }
-    }
-
-    return duration;
-  };
-};
-
-// 🎯 КЕШ ДЛЯ ФОРМАТИРОВАННЫХ ДАТ
-const dateFormatCache = new Map();
-
-const formatDateOptimized = (dateString) => {
-  if (!dateString) return 'Не обновлялся';
-
-  if (dateFormatCache.has(dateString)) {
-    return dateFormatCache.get(dateString);
-  }
-
-  try {
-    const date = new Date(dateString);
-
-    // Упрощенный формат без локализации
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-
-    const result = `${day}.${month}.${year} ${hours}:${minutes}`;
-
-    dateFormatCache.set(dateString, result);
-    return result;
-  } catch {
-    return dateString;
-  }
-};
-
-// 🎯 МЕМОИЗИРОВАННЫЙ КОМПОНЕНТ ДЛЯ ТАБЛИЦЫ ПАРАМЕТРОВ
-const ParametersTable = React.memo(({ parameters }) => {
-  if (Object.keys(parameters).length === 0) {
-    return (
-      <div className="no-parameters">
-        <i className="fas fa-info-circle me-2"></i>
-        Параметры не указаны
-      </div>
-    );
-  }
-
-  return (
-    <div className="new-parameters-container">
-      <table className="new-parameters-table">
-        <thead>
-          <tr>
-            <th className="new-param-name-header">Параметр</th>
-            <th className="new-param-value-header">Значение</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(parameters).map(([key, value]) => (
-            <tr key={key}>
-              <td className="new-param-name-cell">{key}</td>
-              <td className="new-param-value-cell">
-                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-});
-
-// 🎯 МЕМОИЗИРОВАННЫЙ КОМПОНЕНТ ДЛЯ МОДАЛЬНОГО ОКНА
-const ImageModal = React.memo(({
-  isOpen,
-  onClose,
-  onSave,
-  imagePreview,
-  component,
-  hasImage
-}) => {
-  const [localImagePreview, setLocalImagePreview] = useState(imagePreview);
-
-  const handleImageChange = useCallback((e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('📁 Image file selected:', file.name, file.size);
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLocalImagePreview(e.target.result);
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('🖼️ Image preview generated');
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  }, []);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content image-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">
-            {hasImage ? 'Обновить изображение' : 'Добавить изображение'}
-          </h2>
-          <button
-            type="button"
-            className="modal-close-btn"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="modal-body">
-          <div className="image-upload-section">
-            <div className="image-preview">
-              {localImagePreview ? (
-                <img src={localImagePreview} alt="Предпросмотр" className="image-preview-img" />
-              ) : hasImage ? (
-                <img src={component.image_data} alt="Текущее" className="image-preview-img" />
-              ) : (
-                <div className="image-placeholder">
-                  <span>Изображение не загружено</span>
-                </div>
-              )}
-            </div>
-
-            <div className="file-input-wrapper">
-              <input
-                type="file"
-                id="update-component-image"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="file-input"
-              />
-              <label htmlFor="update-component-image" className="file-input-label">
-                {localImagePreview ? 'Выбрать другое изображение' : 'Выбрать изображение'}
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="modal-footer">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onClose}
-          >
-            Отмена
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => onSave(localImagePreview)}
-            disabled={!localImagePreview && !hasImage}
-          >
-            Сохранить
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) => {
 
 
+const ComponentList = ({ category, component, onEdit, onDataUpdate, version, onPdfUpdate }) => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfVersion, setPdfVersion] = useState(0);
-
-
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState(null);
 
@@ -255,7 +45,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
 
 
 
-  // 🎯 СТАБИЛИЗИРУЕМ ПРОПСЫ
+  // СТАБИЛИЗИРУЕМ ПРОПСЫ
   const stableCategory = useMemo(() => category, [category?.id]);
 
 
@@ -266,7 +56,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
 
 
 
-  // 🎯 ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ОТЛАДКИ
+  // ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ОТЛАДКИ
   useRenderDebug('ComponentList', {
     category: stableCategory,
     component: stableComponent
@@ -274,39 +64,8 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
 
 
 
-  const hasPdf = useMemo(() => {
-    return stableComponent?.has_pdf === true;
-  }, [stableComponent?.has_pdf]);
 
-
-
-
-  // Функция для принудительного обновления компонента после изменения PDF
-  const handlePdfUpdate = useCallback(async (componentId, hasPdf) => {
-    try {
-      console.log('🔄 PDF updated for component:', componentId, 'hasPdf:', hasPdf);
-
-      // Обновляем версию для перерендера
-      setPdfVersion(prev => prev + 1);
-
-      // Запрашиваем свежие данные компонента
-      const updatedComponent = await window.api.database.getComponent(componentId);
-
-      if (updatedComponent && onEdit) {
-        // Обновляем компонент в родительском компоненте
-        onEdit(updatedComponent);
-      }
-    } catch (error) {
-      console.error('❌ Error updating PDF info:', error);
-    }
-  }, [onEdit]);
-
-
-
-
-
-
-  // 🎯 ОПТИМИЗИРОВАННЫЕ ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ
+  // ОПТИМИЗИРОВАННЫЕ ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ
   const componentName = useMemo(() => {
     const name = stableComponent?.name;
     if (process.env.NODE_ENV !== 'production') {
@@ -323,7 +82,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
     return name;
   }, [stableComponent?.category_name, stableCategory?.name]);
 
-  // 🎯 ОПТИМИЗИРОВАННОЕ ФОРМАТИРОВАНИЕ ДАТЫ
+  // ОПТИМИЗИРОВАННОЕ ФОРМАТИРОВАНИЕ ДАТЫ
   const formattedDate = useMemo(() => {
     const measurePerf = createPerformanceMeasure('formatDate');
     const result = formatDateOptimized(stableComponent?.updated_at);
@@ -331,7 +90,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
     return result;
   }, [stableComponent?.updated_at]);
 
-  // 🎯 ОПТИМИЗИРОВАННЫЙ ПАРСИНГ ПАРАМЕТРОВ
+  // ОПТИМИЗИРОВАННЫЙ ПАРСИНГ ПАРАМЕТРОВ
   const parameters = useMemo(() => {
     const measurePerf = createPerformanceMeasure('parseParameters');
 
@@ -373,7 +132,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
     return parsed;
   }, [stableComponent?.parameters]);
 
-  // 🎯 ОПТИМИЗИРОВАННЫЕ УСЛОВИЯ РЕНДЕРИНГА
+  // ОПТИМИЗИРОВАННЫЕ УСЛОВИЯ РЕНДЕРИНГА
   const renderConditions = useMemo(() => {
     const conditions = {
       hasDescription: !!stableComponent?.description,
@@ -396,7 +155,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
     return conditions;
   }, [stableComponent, parameters]);
 
-  // 🎯 ОПТИМИЗИРОВАННЫЕ ОБРАБОТЧИКИ
+  // ОПТИМИЗИРОВАННЫЕ ОБРАБОТЧИКИ
   const handleEditClick = useCallback(() => {
     if (process.env.NODE_ENV !== 'production') {
       console.group('✏️ Edit Component Clicked');
@@ -422,6 +181,10 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
     setIsImageModalOpen(false);
     setImagePreview(null);
   }, []);
+
+
+
+
 
   const handleSaveImage = useCallback(async (newImagePreview) => {
     if (!newImagePreview) {
@@ -451,10 +214,6 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
         setImagePreview(newImagePreview);
         onEdit?.(updatedComponent);
         handleCloseImageModal();
-
-
-   
-
       } else {
         console.error('❌ Failed to update image:', result.error);
         alert('Не удалось обновить изображение');
@@ -469,6 +228,9 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
       measurePerf();
     }
   }, [stableComponent, onEdit, handleCloseImageModal]);
+
+
+
 
   const handleDatasheetClick = useCallback(async (e, url) => {
     e.preventDefault();
@@ -519,7 +281,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
     }
   }, []);
 
-  // 🎯 ОБЪЕДИНЕННЫЙ useEffect ДЛЯ ОТЛАДКИ
+  // ОБЪЕДИНЕННЫЙ useEffect ДЛЯ ОТЛАДКИ
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') {
       console.group('🔍 ComponentList Full State');
@@ -533,7 +295,70 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
     }
   }, [stableComponent, stableCategory, isImageModalOpen, imagePreview, renderConditions, parameters]);
 
-  // 🎯 ПРОФИЛИРОВАНИЕ ВРЕМЕНИ РЕНДЕРА
+
+
+
+// useEffect для отслеживания изменений в пропсе component
+useEffect(() => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔄 Component prop changed:', component?.id, component?.name);
+  }
+  
+  // Сбрасываем локальные состояния при смене компонента
+  setImagePreview(null);
+  setPdfLoading(false);
+  setPdfVersion(prev => prev + 1); // Увеличиваем версию для перезагрузки PDF
+  
+}, [component?.id]); // Следим только за ID компонента
+
+
+
+// useEffect для проверки актуальности данных (без вызова onEdit)
+useEffect(() => {
+  const checkForUpdates = async () => {
+    if (component?.id) {
+      try {
+        console.log('🔄 Checking for fresh component data for ID:', component.id);
+        const freshData = await window.api.database.getComponent(component.id);
+        
+        if (freshData) {
+          // Сравниваем текущие данные с новыми
+          const currentData = stableComponent;
+          const hasChanges = JSON.stringify(currentData) !== JSON.stringify(freshData);
+          
+          if (hasChanges) {
+            console.log('📝 Component data changed, but NOT opening edit modal');
+            console.log('  Old:', currentData);
+            console.log('  New:', freshData);
+            
+            if (onDataUpdate) {
+              // Если есть специальный пропс для обновления данных
+              onDataUpdate(freshData);
+            } else {
+              // Если нет специального пропса, просто логируем
+              console.log('⚠️ Data changed but no onDataUpdate handler provided');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error refreshing component data:', error);
+      }
+    }
+  };
+
+  checkForUpdates();
+}, [component?.id, version, pdfVersion]);
+
+
+
+
+
+
+
+
+
+
+  // ПРОФИЛИРОВАНИЕ ВРЕМЕНИ РЕНДЕРА
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') {
       const renderStart = performance.now();
@@ -570,41 +395,7 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
 
 
 
-  const handleOpenPdf = useCallback(async () => {
-    if (!stableComponent?.id) {
-      alert('ID компонента не найден');
-      return;
-    }
-
-    setPdfLoading(true);
-
-    try {
-      console.log('📄 Opening PDF for component:', stableComponent.id);
-
-      const result = await window.api.database.getComponentPdf(stableComponent.id);
-
-      if (result?.success && result.data) {
-        // Создаем data URL из base64
-        const pdfDataUrl = `data:application/pdf;base64,${result.data}`;
-
-        // Открываем через openBrowser (как раньше)
-        if (window.api?.window?.openBrowser) {
-          await window.api.window.openBrowser(pdfDataUrl);
-          console.log('✅ PDF opened in Electron window');
-        } else {
-          alert('Функция открытия PDF недоступна');
-        }
-      } else {
-        alert('PDF файл не найден');
-      }
-    } catch (error) {
-      console.error('❌ Error opening PDF:', error);
-      alert('Не удалось открыть PDF файл');
-    } finally {
-      setPdfLoading(false);
-    }
-  }, [stableComponent?.id]);
-
+ 
 
 
   useEffect(() => {
@@ -616,13 +407,12 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
       console.log('🖼️ Image preview exists:', !!imagePreview);
       console.log('📝 Has description:', renderConditions.hasDescription);
       console.log('⚙️ Parameter count:', Object.keys(parameters).length);
-      console.log('📄 Has PDF flag:', stableComponent?.has_pdf); // ДОБАВЬТЕ ЭТУ СТРОКУ
-      console.log('📄 PDF file path:', stableComponent?.pdf_file_path); // ДОБАВЬТЕ ЭТУ СТРОКУ
-      console.log('📄 PDF filename:', stableComponent?.pdf_filename); // ДОБАВЬТЕ ЭТУ СТРОКУ
+      console.log('📄 Has PDF flag:', stableComponent?.has_pdf);
+      console.log('📄 PDF file path:', stableComponent?.pdf_file_path);
+      console.log('📄 PDF filename:', stableComponent?.pdf_filename);
       console.groupEnd();
     }
   }, [stableComponent, stableCategory, isImageModalOpen, imagePreview, renderConditions, parameters]);
-
 
 
 
@@ -640,16 +430,14 @@ const ComponentList = ({ category, component, onEdit, version, onPdfUpdate }) =>
       setError('');
 
       try {
-        // Получаем PDF данные
-        const result = await window.api.database.getComponentPdf(component.id);
+        const result = await window.api.database.getComponentPdf(component.id); // Получаем PDF данные
 
         if (result.success) {
           // Создаем Blob из данных
           const blob = new Blob([result.data], { type: 'application/pdf' });
           const url = URL.createObjectURL(blob);
 
-          // Открываем в новом окне
-          window.api.window.openBrowser(url);
+          window.api.window.openBrowser(url); // Открываем в новом окне
         } else {
           setError('Не удалось загрузить PDF файл');
         }

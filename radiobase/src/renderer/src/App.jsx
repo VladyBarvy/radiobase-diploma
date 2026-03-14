@@ -50,11 +50,16 @@ function App() {
       if (result.success) {
         console.log('✅ Component updated successfully');
 
+        // Получаем свежие данные из БД
+        const updatedComponent = await window.api.database.getComponent(componentData.id);
+
         // Обновляем выбранный компонент
         if (selectedComponent && selectedComponent.id === componentData.id) {
           const updatedComponent = await window.api.database.getComponent(componentData.id);
           setSelectedComponent({ ...updatedComponent });
           setComponentVersion(prev => prev + 1);
+
+          setEditingComponent(updatedComponent);
 
           console.log('🔄 Updated component data:', updatedComponent);
           console.log('🔄 Previous component data:', selectedComponent);
@@ -81,29 +86,33 @@ function App() {
 
 
   const handlePdfUpdate = useCallback(async (componentId, hasPdf) => {
-  try {
-    console.log('📄 PDF update callback:', componentId, hasPdf);
-    
-    // Обновляем компонент в состоянии
-    if (selectedComponent && selectedComponent.id === componentId) {
-      const updatedComponent = await window.api.database.getComponent(componentId);
-      setSelectedComponent(updatedComponent);
+    try {
+      console.log('📄 PDF update callback:', componentId, hasPdf);
+
+      // Обновляем компонент в состоянии
+      if (selectedComponent && selectedComponent.id === componentId) {
+        const updatedComponent = await window.api.database.getComponent(componentId);
+        setSelectedComponent(updatedComponent);
+      }
+    } catch (error) {
+      console.error('❌ Error handling PDF update:', error);
     }
-  } catch (error) {
-    console.error('❌ Error handling PDF update:', error);
-  }
-}, [selectedComponent]);
+  }, [selectedComponent]);
+
+
 
 
   const handleComponentUpdated = (updatedComponent) => {
-  if (updatedComponent && selectedComponent && selectedComponent.id === updatedComponent.id) {
-    setSelectedComponent(updatedComponent);
-  } else if (updatedComponent === null) {
-    // Если компонент удален - сбрасываем выбор
-    setSelectedComponent(null);
-  }
-};
+    console.log('🔄 Component updated in App:', updatedComponent);
 
+    if (updatedComponent === null) {
+      console.log('🗑️ Компонент удален, сбрасываем выбор');
+      setSelectedComponent(null);
+    } else if (updatedComponent && selectedComponent && selectedComponent.id === updatedComponent.id) {
+      console.log('📝 Компонент обновлен');
+      setSelectedComponent(updatedComponent);
+    }
+  };
 
 
 
@@ -120,7 +129,7 @@ function App() {
       console.log('🔍 Searching for:', query);
       const results = await window.api.database.searchComponents(query);
       console.log('🔍 Search results:', results);
-      
+
       setSearchResults(results);
       setSearchQuery(query);
       setSelectedComponent(null); // Сбрасываем выбранный компонент
@@ -142,10 +151,22 @@ function App() {
     ];
   };
 
+
+
+
+
+  // Обработчик для обновления данных
+  const handleComponentDataUpdate = (updatedComponent) => {
+    console.log('📝 Updating component data without opening modal');
+    setSelectedComponent(updatedComponent);
+  };
+
+
   return (
     <div className="app">
       <Sidebar
         selectedCategory={selectedCategory}
+        selectedComponent={selectedComponent}
         onCategorySelect={handleCategorySelect}
         onComponentSelect={handleComponentSelect}
         onComponentUpdated={handleComponentUpdated}
@@ -167,6 +188,7 @@ function App() {
               category={selectedCategory}
               component={selectedComponent}
               onEdit={handleEditComponent}
+              onDataUpdate={handleComponentDataUpdate}
               version={componentVersion}
               onPdfUpdate={handlePdfUpdate}
             />
@@ -190,10 +212,10 @@ function App() {
 
 
 
-    
 
 
-      
+
+
       {/* Модальное окно редактирования компонента */}
       <ModalAddComponent
         isOpen={isEditModalOpen}

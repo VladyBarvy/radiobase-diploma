@@ -163,7 +163,7 @@
   border-radius: 2px;
 }
 
-.sidebar__components-list {
+/* .sidebar__components-list {
   list-style: none;
   margin: 4px 0 8px 0;
   padding-left: 24px;
@@ -172,6 +172,22 @@
   overflow: hidden;
   max-height: 0;
   animation: sidebarSlideDown 0.3s ease-out forwards;
+} */
+
+
+.sidebar__components-list {
+  list-style: none;
+  margin: 4px 0 8px 0;
+  padding-left: 24px;
+  border-left: 2px solid #e2e8f0;
+  
+  /* Добавляем прокрутку для длинных списков */
+  max-height: 400px; /* Ограничиваем высоту списка */
+  overflow-y: auto;  /* Добавляем вертикальную прокрутку */
+  overflow-x: hidden;
+  
+  /* Анимация для плавного появления */
+  animation: sidebarSlideDown 0.2s ease-out;
 }
 
 .sidebar__component-item {
@@ -206,11 +222,11 @@
 @keyframes sidebarSlideDown {
   from {
     opacity: 0;
-    max-height: 0;
+    /* max-height: 0; */
   }
   to {
-    opacity: 1;
-    max-height: 500px;
+     opacity: 1;
+    /* max-height: 500px; */
   }
 }
 

@@ -24,7 +24,10 @@
     "test:ui-all": "playwright test tests/specs/ --ui",
     "test:ui-fixed": "playwright test tests/specs/ui-mode-fixed.spec.js --ui",
     "test:headed": "playwright test tests/specs/universal-ui-test.spec.js --headed",
-    "test:debug": "playwright test tests/specs/universal-ui-test.spec.js --debug"
+    "test:debug": "playwright test tests/specs/universal-ui-test.spec.js --debug",
+    "test:load": "playwright test tests/load-test.spec.js",
+    "test:load:real": "node tests/real-db-load-test.js",
+    "test:memory": "playwright test tests/memory-test.spec.js"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
